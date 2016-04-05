@@ -60,7 +60,7 @@ class Printer(object):
     ESCAPE = 0xFD   # Character used to escape special characters in a bytestring
 
     AUDIT_LASER_POWER = True
-    LASER_POWER_MAX_MW = 62
+    LASER_POWER_MAX_MW = 64
 
     def __init__(self, connect=True):
         if connect:

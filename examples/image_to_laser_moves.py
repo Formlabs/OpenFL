@@ -4,9 +4,12 @@ import sys
 import os
 sys.path.append(os.path.abspath('../OpenFL'))
 
+GERBER_EXTENSIONS = ('.gbl', '.gbs', '.gtl')
+
 import numpy as np
 
-def image_to_laser_moves(image, M, mmps=500.0, powerThreshold_mW=0.0, doFilter=False):
+def image_to_laser_moves(image, M, mmps=294.0, powerThreshold_mW=0.0, doFilter=False,
+                         max_seg_length_mm=5.0):
     """
     Given an image and a transform, rasterize the image.
     Return an FLX.FLXIdealLaserSegments object.
@@ -62,7 +65,8 @@ def image_to_laser_moves(image, M, mmps=500.0, powerThreshold_mW=0.0, doFilter=F
         # Include seg_i if it is a different power than the last seg included.
         sum_dt_s += result[seg_i-1][0]
         # See if this segment has a different power.
-        if abs(result[seg_i][3] - mW) > powerThreshold_mW:
+        seg_mm = np.linalg.norm(np.array(filtered[-1][1:3]) - result[seg_i-1][1:3])
+        if abs(result[seg_i][3] - mW) > powerThreshold_mW or seg_mm > max_seg_length_mm:
             # This segment has a different power, so add the first
             # point of this segment, with the last power and the sum time.
             # That constitutes the previous-power line segment.
@@ -78,59 +82,84 @@ def image_to_laser_moves(image, M, mmps=500.0, powerThreshold_mW=0.0, doFilter=F
     return np.array(filtered), xy, image
 
 
-def samplesToFLP(dtxypower):
+def samplesToFLP(dtxypower, xymmToDac=None):
     clock_Hz = 60e3
     xytickspmm = float(0xffff) / 125
     lastPower = None
     xyticks = []
+    import numpy as np
+    dtxypower = np.asarray(dtxypower)
     from OpenFL import FLP
     result = FLP.Packets()
+    result.append(FLP.TimeRemaining(int(sum(dtxypower[:,0]))))
     import numpy as np
-    tickspmm = float(0xffff)/125.0
-    midticks = float(0xffff)/2
-    xyToTicks = np.array([[tickspmm, 0, midticks],
-                          [0, tickspmm, midticks],
-                          [0, 0, 1]])
+    if xymmToDac is None:
+        tickspmm = float(0xffff)/125.0
+        midticks = float(0xffff)/2
+        xyToTicks = np.array([[tickspmm, 0, midticks],
+                              [0, tickspmm, midticks],
+                              [0, 0, 1]])
+        def xymmToDac(x_mm, y_mm):
+            xy_ticks = xyToTicks.dot((x_mm, y_mm, 1))
+            x_ticks, y_ticks = xy_ticks[:2] / xy_ticks[-1]
+            return x_ticks, y_ticks
+
     for dt_s, x_mm, y_mm, power in dtxypower:
+        #power = mWToNumber(power)
         if power != lastPower:
             if xyticks:
                 result.append(FLP.XYMove(xyticks))
                 xyticks = []
             result.append(FLP.LaserPowerLevel(power))
             lastPower = power
-        xy_ticks = xyToTicks.dot((x_mm, y_mm, 1))
-        x_ticks, y_ticks = xy_ticks[:2] / xy_ticks[-1]
+        xy_ticks = xymmToDac(x_mm, y_mm)
         dt_ticks = dt_s * clock_Hz
         # Deal with potential that the move takes too long to fit in one step:
         for i in range(int(dt_ticks // 0xffff)):
             alpha = (i+1) * 0xffff / dt_ticks 
-            x = np.interp(alpha, [0.0, 1.0], [lastxy_ticks[0], x_ticks])
-            y = np.interp(alpha, [0.0, 1.0], [lastxy_ticks[1], y_ticks])
+            x = np.interp(alpha, [0.0, 1.0], [lastxy_ticks[0], xy_ticks[0]])
+            y = np.interp(alpha, [0.0, 1.0], [lastxy_ticks[1], xy_ticks[1]])
             xyticks.append((x, y, 0xffff))
         dt_ticks %= 0xffff # Now we just have to do the last little bit.
-        xyticks.append((x_ticks, y_ticks, dt_ticks))
+        xyticks.append(tuple(xy_ticks) + (dt_ticks,))
         lastxy_ticks = xy_ticks
     if xyticks:
         result.append(FLP.XYMove(xyticks))
     return result
 
 
-def image_to_flp(imagefilename, flpfilename):
+def png_to_flp(pngfilename, flpfilename, pixel_mm=0.1, mmps=295.0, mW=31.0,
+               invert=True,
+               mWToNumber=None, 
+               xymmToDac=None,
+               tile=(1,1)):
     from scipy.ndimage import imread
-    image = imread(imagefilename)
+    image = imread(pngfilename)
     if image.ndim == 3:
         image = image.mean(axis=-1)
     image /= image.max()
-    image[image < 0.25] = 0 # Throw out noise/edges, etc.
-    image *= 0xffff/2
-    M = np.diag((0.1,.1,1))+[[0,0,0.1],[0,0,0.05],[0,0,0]]
-    result, xy, imflat = image_to_laser_moves(image, M, mmps=5e2, doFilter=True)
+    image[image < 0.5] = 0.0 # Throw out noise/edges, etc.
+    image[image >= 0.5] = 1.0
+    if invert:
+        image = 1.0 - image
+    image *= mW
+    M = np.diag((pixel_mm,pixel_mm,1))+[[0,0,0.1],[0,0,0.05],[0,0,0]]
+    image = np.tile(image, tile)
+    result, xy, imflat = image_to_laser_moves(image, M, mmps=mmps, doFilter=True)
+    if mWToNumber is None:
+        def mWToNumber(mW): 
+            num = np.polyval((423,19082), mW)
+            num[mW < 1] = 0
+            assert np.all(num <= 0xffff)
+            return num
+    result[:,3] = mWToNumber(result[:,3])
     # Center:
     lo = result[:,1:3].min(axis=0)
     hi = result[:,1:3].max(axis=0)
     result[:,1:3] -= [(lo + hi)/2]
-    data = samplesToFLP(result)
+    data = samplesToFLP(result, xymmToDac=xymmToDac) 
     data.tofile(flpfilename)
+    return data, result, xy, imflat, image
 
 
 def plotResults(result):
@@ -159,9 +188,52 @@ def plotResults(result):
     show()
 
 
-if __name__ == '__main__':
+def gerberToPNG(filename, png, pixel_mm=0.1):
+    """
+    Convert to png.
+    Return pixel size in mm.
+    """
+    import gerber
+    from gerber.render import GerberCairoContext
+
+    # Read gerber and Excellon files
+    data = gerber.read(filename)
+    data.to_metric()
+    
+    # Rendering context
+    ctx = GerberCairoContext(scale=1.0/pixel_mm) # Scale is pixels/mm
+
+    # Create SVG image
+    data.render(ctx)
+    ctx.dump(png)
+    return png, np.mean(data.size) / np.mean(ctx.size_in_pixels)
+
+def convertToTmpPNG(filename, png, pixel_mm=0.1):
+    """
+    Convert this image file to a temporary .png.
+    Return the file name and pixel size in mm.
+    """
+    ext = os.path.splitext(filename)[1].lower()
+    if ext in GERBER_EXTENSIONS:
+        return gerberToPNG(filename, png, pixel_mm=pixel_mm)
+    raise Exception('Unsupported file type: {} in {}'.format(ext, filename))
+    
+
+def image_to_flp(imagefilename, flpfilename, pixel_mm=0.1, **kwargs):
     import sys
-    png, flp = sys.argv[1], sys.argv[2]
-    assert png.endswith('.png')
-    assert flp.endswith('.flp')
-    image_to_flp(png, flp)
+    isGerber = os.path.splitext(imagefilename.lower())[1] in GERBER_EXTENSIONS
+    if not imagefilename.endswith('.png'):
+        import tempfile
+        fh = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        imagefilename, pixel_mm = convertToTmpPNG(imagefilename, fh.name, pixel_mm=pixel_mm)
+    assert flpfilename.endswith('.flp')
+    return png_to_flp(pngfilename, flpfilename, pixel_mm=pixel_mm, **kwargs)
+
+
+if __name__ == '__main__':
+    inImageFilename, outFlpFilename = sys.argv[1], sys.argv[2]
+    from OpenFL import Printer
+    p = Printer.Printer()  
+    image_to_flp(inImageFilename, outFlpFilename,
+                 mWToNumber=p.mW_to_ticks, 
+                 xymmToDac=p.mm_to_galvo)

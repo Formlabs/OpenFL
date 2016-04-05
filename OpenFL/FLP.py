@@ -361,6 +361,11 @@ class TimeRemaining(Packet):
     dtype = 'I'
     DEFAULT_DATA = 0
 
+    def __init__(self, timeremaining_s=None):
+        if timeremaining_s is None:
+            timeremaining_s = self.DEFAULT_DATA
+        self.data = int(timeremaining_s)
+
     @property
     def timeremaining_s(self): return self.data # FIXME: Units?
 
