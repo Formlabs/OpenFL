@@ -17,7 +17,6 @@ class Packet(object):
     dtype is the struct format
     data is the contents; if COUNT is zero, data is None.
     """
-    __slots__ = 'CMD', 'COUNT', 'dtype', 'data'
     CMD = None
     COUNT = 1
     dtype = 'B'
