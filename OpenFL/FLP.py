@@ -459,10 +459,10 @@ def __setupNumToPacket():
         p.struct = struct.Struct('<{}{}'.format(p.COUNT, p.dtype)
                                  if p.dtype else '')
 
-    numToPacketDict = dict((p.CMD, p) for p in packets)
+    numToPacketDict = dict((p.CMD, p) for p in packets if p.CMD is not None)
     # Now convert it to a tuple for faster indexing. (This was profiled and really does help.)
     ntp = [None] * (1 + max(numToPacketDict.keys()))
-    for k, v in numToPacketDict.iteritems():
+    for k, v in numToPacketDict.items():
         if isinstance(k, int):
             ntp[k] = v
     return tuple(ntp)
