@@ -24,11 +24,6 @@ import io
 import struct
 import time
 
-try:    # Python 2
-    import ConfigParser as configparser
-except ImportError:
-    import configparser
-
 import usb.core
 import numpy as np
 import scipy.interpolate
