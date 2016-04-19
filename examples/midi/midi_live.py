@@ -7,7 +7,8 @@ def midi_live(midifilename, quarternote_s=0.5, skip_leading_rests=True):
     """ Given a MIDI file, play it live on the printer
     """
     p = P.Printer()
-    p.initialize()
+    if p.state() != P.State.MACHINE_READY_TO_PRINT:
+        p.initialize()
 
     # Use a class as a local namespace to capture variables
     class Position:
@@ -22,7 +23,7 @@ def midi_live(midifilename, quarternote_s=0.5, skip_leading_rests=True):
             Position.direction *= -1
 
         # Send a blocking motor move
-        p.move_z(Position.direction * freq * time_s, freq, 150)
+        p.move_z(Position.direction * freq * time_s, freq, 80)
 
         # Update the dead-reckoning Z position
         Position.z += Position.direction * steps
