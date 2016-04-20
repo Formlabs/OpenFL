@@ -12,7 +12,7 @@ def image_to_laser_moves(image, M, mmps=294.0, powerThreshold_mW=0.0, doFilter=F
                          max_seg_length_mm=5.0):
     """
     Given an image and a transform, rasterize the image.
-    Return an FLX.FLXIdealLaserSegments object.
+    Returns an array of shape nx4 where each row is dt_s, x_mm, y_mm, mW.
     """
     image = np.asarray(image)
     M = np.asarray(M)
@@ -56,7 +56,7 @@ def image_to_laser_moves(image, M, mmps=294.0, powerThreshold_mW=0.0, doFilter=F
     # Filter result to exclude straight lines.
     normalized = lambda x: np.asarray(x) / np.linalg.norm(x)
     if len(result) <= 3 or not doFilter:
-        return np.array(result), xy, image
+        return np.array(result)
 
     filtered = [result[0]]
     sum_dt_s = 0.0
@@ -79,7 +79,7 @@ def image_to_laser_moves(image, M, mmps=294.0, powerThreshold_mW=0.0, doFilter=F
             mW = result[seg_i][3]
 
     filtered.append((sum_dt_s,) + tuple(result[-1][1:3]) + (mW,))
-    return np.array(filtered), xy, image
+    return np.array(filtered)
 
 
 def samplesToFLP(dtxypower, xymmToDac=None):
@@ -103,9 +103,15 @@ def samplesToFLP(dtxypower, xymmToDac=None):
             xy_ticks = xyToTicks.dot((x_mm, y_mm, 1))
             x_ticks, y_ticks = xy_ticks[:2] / xy_ticks[-1]
             return x_ticks, y_ticks
-
+    xydtmW = Printer.sample_line_segment_mm_s(start_xy_mm=dtxypower[0,1:3],
+                                              xys_mm=dtxypower[1:,1:3],
+                                              dts_s=dtxypower[1:,0],
+                                              mW=dtxypower[1:,3])
+    # Use the starting row, then interpolate elsewhere.
+    dtxypower = np.vstack([dtxypower[:1],
+                           np.hstack([xydtmW[:,2], xydtmW[:,:2], xydtmW[:,3]])
+                          ])
     for dt_s, x_mm, y_mm, power in dtxypower:
-        #power = mWToNumber(power)
         if power != lastPower:
             if xyticks:
                 result.append(FLP.XYMove(xyticks))
@@ -145,7 +151,7 @@ def png_to_flp(pngfilename, flpfilename, pixel_mm=0.1, mmps=295.0, mW=31.0,
     image *= mW
     M = np.diag((pixel_mm,pixel_mm,1))+[[0,0,0.1],[0,0,0.05],[0,0,0]]
     image = np.tile(image, tile)
-    result, xy, imflat = image_to_laser_moves(image, M, mmps=mmps, doFilter=True)
+    result = image_to_laser_moves(image, M, mmps=mmps, doFilter=True)
     if mWToNumber is None:
         def mWToNumber(mW): 
             num = np.polyval((423,19082), mW)
@@ -159,7 +165,7 @@ def png_to_flp(pngfilename, flpfilename, pixel_mm=0.1, mmps=295.0, mW=31.0,
     result[:,1:3] -= [(lo + hi)/2]
     data = samplesToFLP(result, xymmToDac=xymmToDac) 
     data.tofile(flpfilename)
-    return data, result, xy, imflat, image
+    return data, result, image
 
 
 def plotResults(result):

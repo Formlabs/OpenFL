@@ -544,6 +544,64 @@ class Printer(object):
         y_ = [self._grid_table[1](a, b) for a, b in zip(x, y)]
 
         return np.hstack([x_, y_]).T
+    
+    @staticmethod
+    def sample_line_segment_mm_s(start_xy_mm, end_xy_mm, dt_s, mW=None, max_mm=5.0):
+        """ Given a line segment in mm space, map it to galvo space.
+            To make the line straight in mm space, samples may be added to 
+            more-closely approximate a straight line.
+            Returns: An array of shape nx3 (if mW is None) or nx4 (if mW is not None) 
+                        of points time deltas in mm and seconds,
+                        excluding start_xy_mm and including end_xy_mm,
+                        possibly including samples along the way.
+        """
+        import FLP
+        from numpy.linalg import norm
+        dist_mm = norm(np.asarray(end_xy_mm) - start_xy_mm)
+        if dist_mm <= max_mm:
+            if mW is None:
+                return np.array((tuple(end_xy_mm) + (dt_s,),)) # Just the end sample.
+            else:
+                return np.array((tuple(end_xy_mm) + (dt_s, mW),)) # Just the end sample.
+        samples_s = np.linspace(0, dt_s, np.ceil(dist_mm / max_mm) + 1)
+        timeRange_s = (0, dt_s)
+        if mW is None:
+            return np.transpose([np.interp(samples_s[1:], timeRange_s, (start_xy_mm[0], end_xy_mm[0])),
+                                 np.interp(samples_s[1:], timeRange_s, (start_xy_mm[1], end_xy_mm[1])),
+                                 np.diff(samples_s)])
+        else:
+            return np.transpose([np.interp(samples_s[1:], timeRange_s, (start_xy_mm[0], end_xy_mm[0])),
+                                 np.interp(samples_s[1:], timeRange_s, (start_xy_mm[1], end_xy_mm[1])),
+                                 np.diff(samples_s),
+                                 mW * np.ones_like(samples_s[1:])])
+            
+
+    @staticmethod
+    def sample_line_segments_mm_s(start_xy_mm, xys_mm, dts_s, mWs, max_mm=5.0):
+        """ Given a sequence of x, y, dt, mW, return a new sequence
+            with samples added as needed for interpolation.
+        """
+        if len(xys_mm) != len(dts_s) or len(xys_mm) != len(mWs):
+            raise TypeError('Samples must be the same length.')
+        if len(xys_mm) == 0:
+            return np.zeros((0, 3))
+        result = [Printer.sample_line_segment_mm_s(start_xy_mm, 
+                                                   xys_mm[0],
+                                                   dts_s[0],
+                                                   mW=mWs[0],
+                                                   max_mm=max_mm)]
+        for start_mm, end_mm, dt_s, mW in zip(xys_mm[:-1],
+                                              xys_mm[1:],
+                                              dts_s[1:],
+                                              mWs[1:]):
+            newChunk = Printer.sample_line_segment_mm_s(start_mm,
+                                                        end_mm,
+                                                        dt_s,
+                                                        mW=mW,
+                                                        max_mm=max_mm)
+            result.append(newChunk)
+        return np.vstack(result)
+        
 
     @staticmethod
     def mm_to_galvo_approx(x, y=None):
