@@ -158,7 +158,7 @@ class Printer(object):
                 self.incoming.append(
                         (cmd, self._interpret(cmd, self._decode(p))))
 
-    def _command(self, cmd, payload=b'', wait=True, expect_success=False):
+    def _command(self, cmd, payload=b'', wait=True, expect_success=False, verbose=False):
         """ Transmits a command to the printer
             The command is wrapped in the form SOF, cmd, encode(payload), EOF
 
@@ -176,7 +176,7 @@ class Printer(object):
             wait = [cmd]
 
         if wait:
-            r = self._wait_for_packet(wait)
+            r = self._wait_for_packet(wait, verbose=verbose)
             if expect_success and r != Response.SUCCESS:
                 raise BadResponse(r)
             return r
