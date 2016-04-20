@@ -603,6 +603,46 @@ class Printer(object):
         return np.vstack(result)
         
 
+    def samples_to_FLP(self, xy_mm_dts_s_mW, max_mm=5.0):
+        import FLP
+        clock_Hz = FLP.XYMoveClockRate.moverate_Hz()
+        xyticks = []
+        import numpy as np
+        xy_mm_dts_s_mW = np.asarray(xy_mm_dts_s_mW)
+        result = FLP.Packets()
+        xydtmW = self.sample_line_segments_mm_s(start_xy_mm=xy_mm_dts_s_mW[0,1:3],
+                                                xys_mm=xy_mm_dts_s_mW[1:,:2],
+                                                dts_s=xy_mm_dts_s_mW[1:,2],
+                                                mWs=xy_mm_dts_s_mW[1:,3],
+                                                max_mm=5.0)
+        # Use the starting row, then interpolate elsewhere.
+        xydtmW = np.vstack([xy_mm_dts_s_mW[:1],
+                            np.hstack([xydtmW[:,:2], xydtmW[:,2:3], xydtmW[:,3:4]])
+                           ])
+        last_mW = None
+        for x_mm, y_mm, dt_s, mW in xydtmW:
+            if mW != last_mW:
+                if xyticks:
+                    result.append(FLP.XYMove(xyticks))
+                    xyticks = []
+                result.append(FLP.LaserPowerLevel(self.mW_to_ticks(mW)))
+                last_mW = mW
+            xy_ticks = self.mm_to_galvo(x_mm, y_mm)
+            dt_ticks = dt_s * clock_Hz
+            # Deal with potential that the move takes too long to fit in one step:
+            for i in range(int(dt_ticks // 0xffff)):
+                alpha = (i+1) * 0xffff / dt_ticks 
+                x = np.interp(alpha, [0.0, 1.0], [lastxy_ticks[0], xy_ticks[0]])
+                y = np.interp(alpha, [0.0, 1.0], [lastxy_ticks[1], xy_ticks[1]])
+                xyticks.append((x, y, 0xffff))
+            dt_ticks %= 0xffff # Now we just have to do the last little bit.
+            xyticks.append(tuple(xy_ticks) + (dt_ticks,))
+            lastxy_ticks = xy_ticks
+        if xyticks:
+            result.append(FLP.XYMove(xyticks))
+        return result
+
+
     @staticmethod
     def mm_to_galvo_approx(x, y=None):
         """ Given one or many points in mm space, map them to galvo space.
