@@ -9,6 +9,12 @@ def midi_live(midifilename, quarternote_s=0.5, skip_leading_rests=True):
     p = P.Printer()
     if p.state() != P.State.MACHINE_READY_TO_PRINT:
         p.initialize()
+    else:
+        # We still want to ensure we start in a known state, with z at the limit:
+        import OpenFL.FLP as FLP
+        # Move z up by more than the z height at 15 mm/s.
+        p.move_z(FLP.ZMove.usteps_up_per_mm * 200.0, 
+                 feedrate=FLP.ZMove.usteps_up_per_mm * 15.0)
 
     # Use a class as a local namespace to capture variables
     class Position:
