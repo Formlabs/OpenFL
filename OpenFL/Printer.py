@@ -523,6 +523,7 @@ class Printer(object):
             >>> Printer.mm_to_galvo([[0, 1, 2], [0, 0, 0]]) # -> A three-segment line along the x axis.
             The returned array is 2xN, where N is the number of source points
         """
+        xshape = np.shape(x)
         if self._grid_table is None:
             grid = np.array(self.read_grid_table())
             assert grid.shape == (5, 5, 2)
@@ -543,7 +544,10 @@ class Printer(object):
         x_ = [self._grid_table[0](a, b) for a, b in zip(x, y)]
         y_ = [self._grid_table[1](a, b) for a, b in zip(x, y)]
 
-        return np.hstack([x_, y_]).T
+        result = np.hstack([x_, y_]).T
+        if xshape == (): # If it's called with scalars, return a flat result.
+            return result.flatten()
+        return result
     
     @staticmethod
     def sample_line_segment_mm_s(start_xy_mm, end_xy_mm, dt_s, mW=None, max_mm=5.0):
@@ -620,6 +624,7 @@ class Printer(object):
                             np.hstack([xydtmW[:,:2], xydtmW[:,2:3], xydtmW[:,3:4]])
                            ])
         last_mW = None
+        lastxy_ticks = self.mm_to_galvo(xydtmW[0][0], xydtmW[0][1])
         for x_mm, y_mm, dt_s, mW in xydtmW:
             if mW != last_mW:
                 if xyticks:
