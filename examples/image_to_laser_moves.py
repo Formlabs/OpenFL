@@ -8,8 +8,11 @@ GERBER_EXTENSIONS = ('.gbl', '.gbs', '.gtl')
 
 import numpy as np
 
-def image_to_laser_moves_xy_mm_dt_s_mW(image, M, mmps=294.0, powerThreshold_mW=0.0, doFilter=False,
-                         max_seg_length_mm=5.0):
+def image_to_laser_moves_xy_mm_dt_s_mW(image, M, 
+                                       mmps=294.0, 
+                                       powerThreshold_mW=0.0, 
+                                       doFilter=False,
+                                       max_seg_length_mm=5.0):
     """
     Given an image and a transform, rasterize the image.
     Returns an array of shape nx4 where each row is dt_s, x_mm, y_mm, mW.
