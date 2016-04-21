@@ -2,7 +2,11 @@
 
 import sys
 import os
-sys.path.insert(0, os.path.abspath('../OpenFL'))
+import inspect
+from os.path import dirname
+
+# Add parent directory to sys.path so we find OpenFL.
+sys.path.insert(0, dirname(dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 
 from OpenFL import FLP
 from OpenFL import Printer

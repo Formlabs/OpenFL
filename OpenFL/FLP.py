@@ -39,6 +39,12 @@ class Packet(object):
     def __init__(self):
         self.data = self.DEFAULT_DATA
 
+    def __eq__(self, other):
+        return (self.CMD == other.CMD and
+                self.COUNT == other.COUNT and 
+                self.dtype == other.dtype and 
+                self.data == other.data)
+
     @property
     def DEFAULT_DATA(self):
         if self.COUNT == 0:
