@@ -28,5 +28,28 @@ class PrinterTestSuite(unittest.TestCase):
         self.assertTrue(np.all(p.mm_to_galvo([0], [0]) == [[ 32026.],[ 32748.]]))
         self.assertTrue(np.all(p.mm_to_galvo(0, 0) == [32026., 32748.]))
 
+
+class ExampleTestSuite(unittest.TestCase):
+    def test_image_to_flp(self):
+        image = np.array([[1, 0.5, 0],
+                          [1, 1.0, 0],
+                          [0,   0, 1]])
+        from examples.image_to_laser_moves import image_to_laser_moves_xy_mm_dt_s_mW
+        result = image_to_laser_moves_xy_mm_dt_s_mW(image, M=np.eye(3),
+                                                    mmps=294, powerThreshold_mW=0.0,
+                                                    doFilter=True,
+                                                    max_seg_length_mm=5.0)
+        self.assertEqual(result.shape, (9,4))
+        reference = np.array([[  0.00000000e+00,   0.00000000e+00,   0.00000000e+00, 0.00000000e+00],
+                              [ -5.00000000e-01,   0.00000000e+00,   1.70068027e-03, 0.00000000e+00],
+                              [  5.00000000e-01,   0.00000000e+00,   1.70069011e-03, 1.00000000e+00],
+                              [  1.50000000e+00,   0.00000000e+00,   5.10204410e-03, 5.00000000e-01],
+                              [  1.50000000e+00,  -1.00000000e+00,   3.40136054e-03, 0.00000000e+00],
+                              [ -5.00000000e-01,  -1.00000000e+00,   9.97080200e-03, 1.00000000e+00],
+                              [  1.50000000e+00,  -2.00000000e+00,   7.60567339e-03, 0.00000000e+00],
+                              [  2.50000000e+00,  -2.00000000e+00,   1.67687791e-02, 1.00000000e+00],
+                              [  0.00000000e+00,   0.00000000e+00,   0.00000000e+00, 0.00000000e+00]])
+        self.assertTrue(np.max(np.abs(result - reference)) < 1e-10)
+
 if __name__ == '__main__':
     unittest.main()

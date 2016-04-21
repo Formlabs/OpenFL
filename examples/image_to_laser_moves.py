@@ -2,7 +2,12 @@
 from __future__ import division
 import sys
 import os
-sys.path.append(os.path.abspath('../OpenFL'))
+import inspect
+from os.path import dirname
+
+# Add parent directory to sys.path so we find OpenFL.
+sys.path.append(dirname(dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
+
 
 GERBER_EXTENSIONS = ('.gbl', '.gbs', '.gtl')
 
@@ -141,9 +146,14 @@ def png_to_flp(pngfilename, flpfilename, printer, pixel_mm=0.1, mmps=295.0, mW=3
                invert=False,
                tile=(1,1)):
     from scipy.ndimage import imread
-    image = imread(pngfilename)
-    if image.ndim == 3:
-        image = image.mean(axis=-1)
+    if isinstance(pngfilename, basestring):
+        image = imread(pngfilename)
+        if image.ndim == 3:
+            image = image.mean(axis=-1)
+    else:
+        image = np.array(pngfilename)
+        if image.ndim != 2:
+            raise TypeError('pngfilename must be a 2D image or a filename.')
     image /= image.max()
     image[image < 0.5] = 0.0 # Throw out noise/edges, etc.
     image[image >= 0.5] = 1.0
