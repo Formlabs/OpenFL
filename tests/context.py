@@ -4,5 +4,5 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath('../OpenFL'))
 
-import FLP
-import Printer
+from OpenFL import FLP
+from OpenFL import Printer
