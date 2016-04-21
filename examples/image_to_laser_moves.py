@@ -8,6 +8,7 @@ from os.path import dirname
 # Add parent directory to sys.path so we find OpenFL.
 sys.path.append(dirname(dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 
+from context import FLP, Printer
 
 GERBER_EXTENSIONS = ('.gbl', '.gbs', '.gtl')
 
@@ -97,7 +98,6 @@ def __samplesToFLP(dtxypower, xymmToDac=None):
     xyticks = []
     import numpy as np
     dtxypower = np.asarray(dtxypower)
-    from OpenFL import FLP
     result = FLP.Packets()
     result.append(FLP.TimeRemaining(int(sum(dtxypower[:,0]))))
     import numpy as np
@@ -242,7 +242,6 @@ def image_to_flp(imagefilename, flpfilename, pixel_mm=0.1, **kwargs):
 
 if __name__ == '__main__':
     inImageFilename, outFlpFilename = sys.argv[1], sys.argv[2]
-    from OpenFL import Printer
     p = Printer.Printer()  
     image_to_flp(inImageFilename, outFlpFilename,
                  printer=p)
