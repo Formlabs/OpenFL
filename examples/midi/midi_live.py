@@ -4,7 +4,11 @@ import time
 import music21
 import sys
 import os
-sys.path.append(os.path.abspath('../OpenFL'))
+
+import inspect
+from os.path import dirname
+# Add parent directory to sys.path so we find OpenFL.
+sys.path.append(dirname(dirname(dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))))
 from OpenFL import Printer as P
 
 def midi_live(midifilename, 
@@ -54,11 +58,12 @@ def midi_live(midifilename,
         # Update the dead-reckoning Z position
         Position.z_ustep += Position.direction * steps
 
+    print 'Reading MIDI file...'
     mf = music21.midi.MidiFile()
     mf.open(midifilename)
     mf.read()
     soundstream = music21.midi.translate.midiFileToStream(mf)
-    print len(soundstream.elements)
+    print 'read {} streams'.format(len(soundstream.elements))
     for track in soundstream.elements:
         for i in track.flat.elements:
             # Play a note on the printer (and clear the skip rests flag)
