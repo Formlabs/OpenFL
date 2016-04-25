@@ -451,6 +451,8 @@ class SerialPrintClockCommand(Packet):
     Print the current system clock time to the serial header.
     This allows compensating for clock drift between the
     printer and a computer gathering data.
+    The serial output will look like "clock: 328756936\n" 
+    where the time is in ms.
     """
     CMD = 0x24
     dtype = None
