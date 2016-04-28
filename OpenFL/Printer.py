@@ -614,7 +614,7 @@ class Printer(object):
         import numpy as np
         xy_mm_dts_s_mW = np.asarray(xy_mm_dts_s_mW)
         result = FLP.Packets()
-        xydtmW = self.sample_line_segments_mm_s(start_xy_mm=xy_mm_dts_s_mW[0,1:3],
+        xydtmW = self.sample_line_segments_mm_s(start_xy_mm=xy_mm_dts_s_mW[0,:2],
                                                 xys_mm=xy_mm_dts_s_mW[1:,:2],
                                                 dts_s=xy_mm_dts_s_mW[1:,2],
                                                 mWs=xy_mm_dts_s_mW[1:,3],

@@ -49,46 +49,46 @@ def image_to_laser_moves_xy_mm_dt_s_mW(image, M,
     xy = M.dot(ij1)
     xy = xy[:-1] / xy[-1:] # Perspective divide.
     # Not sure how to deal with energy density... for now let's ignore it.
-    result = []
-    result.append((0.0, 0.0, 0.0, 0.0))
+    result_mm_s_mW = []
+    result_mm_s_mW.append((0.0, 0.0, 0.0, 0.0))
     for i, (xy_mm, mW) in enumerate(zip(xy.T, image)):
-        prev_xy_mm = result[-1][1:3]
+        prev_xy_mm = result_mm_s_mW[-1][:2]
         direction = xy_mm - prev_xy_mm
         dist_mm = np.linalg.norm(direction)
         dt_s = dist_mm / mmps
-        result.append((xy_mm[0], xy_mm[1], dt_s, mW))
+        result_mm_s_mW.append((xy_mm[0], xy_mm[1], dt_s, mW))
 
     xy_mm = np.array((0.0, 0.0))
-    dist_mm = np.linalg.norm(xy_mm - result[-1][1:3])
+    dist_mm = np.linalg.norm(xy_mm - result_mm_s_mW[-1][:2])
     dt_s = dist_mm / mmps
-    result.append((xy_mm[0], xy_mm[1], dt_s, 0.0))
-    # Filter result to exclude straight lines.
+    result_mm_s_mW.append((xy_mm[0], xy_mm[1], dt_s, 0.0))
+    # Filter result_mm_s_mW to exclude straight lines.
     normalized = lambda x: np.asarray(x) / np.linalg.norm(x)
-    if len(result) <= 3 or not doFilter:
-        return np.array(result)
+    if len(result_mm_s_mW) <= 3 or not doFilter:
+        return np.array(result_mm_s_mW)
 
-    filtered = [result[0]]
+    filtered_mm_s_mW = [result_mm_s_mW[0]]
     sum_dt_s = 0.0
-    mW = result[0][3]
-    for seg_i in range(1, len(result)):
+    mW = result_mm_s_mW[0][3]
+    for seg_i in range(1, len(result_mm_s_mW)):
         # Include seg_i if it is a different power than the last seg included.
-        sum_dt_s += result[seg_i-1][2]
+        sum_dt_s += result_mm_s_mW[seg_i-1][2]
         # See if this segment has a different power.
-        seg_mm = np.linalg.norm(np.array(filtered[-1][:2]) - result[seg_i-1][:2])
-        if abs(result[seg_i][3] - mW) > powerThreshold_mW or seg_mm > max_seg_length_mm:
+        seg_mm = np.linalg.norm(np.array(filtered_mm_s_mW[-1][:2]) - result_mm_s_mW[seg_i-1][:2])
+        if abs(result_mm_s_mW[seg_i][3] - mW) > powerThreshold_mW or seg_mm > max_seg_length_mm:
             # This segment has a different power, so add the first
             # point of this segment, with the last power and the sum time.
             # That constitutes the previous-power line segment.
             # Now start summing up the new segment.
             if mW == 0.0:
-                dist_mm = np.linalg.norm(np.array(filtered[-1][:2]) - result[seg_i-1][:2])
+                dist_mm = np.linalg.norm(np.array(filtered_mm_s_mW[-1][:2]) - result_mm_s_mW[seg_i-1][:2])
                 sum_dt_s = dist_mm / mmps
-            filtered.append(tuple(result[seg_i-1][:2]) + (sum_dt_s, mW))
+            filtered_mm_s_mW.append(tuple(result_mm_s_mW[seg_i-1][:2]) + (sum_dt_s, mW))
             sum_dt_s = 0.0
-            mW = result[seg_i][3]
+            mW = result_mm_s_mW[seg_i][3]
 
-    filtered.append(tuple(result[-1][:2]) + (sum_dt_s, mW))
-    return np.array(filtered)
+    filtered_mm_s_mW.append(tuple(result_mm_s_mW[-1][:2]) + (sum_dt_s, mW))
+    return np.array(filtered_mm_s_mW)
 
 
 def __samplesToFLP(dtxypower, xymmToDac=None):
