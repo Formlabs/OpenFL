@@ -14,7 +14,7 @@ Then, have a look through the `examples` subfolder.
 
 # Serial Output Commands
 OpenFL provides commands for bidirectional communication with the printer while it is printing.
-The J22 header of the board, next to the USB plug, can be connected to an FTDI TTL-232R-3V3 six-pin cable. The end labeled "G" on the board is ground (black), not to be confused with the green wire that's at the other end of the plug. This serial port is at 115200 baud, so can be listened to with, e.g., 
+The J22 header of the board, next to the USB plug, can be connected to an FTDI TTL-232R-3V3 six-pin cable. The end labeled "G" on the board is ground (black), not to be confused with the green wire that's at the other end of the plug. This serial port is at 115200 baud, so can be listened to with, e.g.,
 ```
 $ python -m serial.tools.miniterm /dev/tty.usbserial-AL009TJ4 115200
 ```
@@ -22,10 +22,10 @@ The serial port will show a number of status messages as the machine boots, for 
 ```
 >>> from OpenFL import Printer, FLP
 >>> p=Printer.Printer()
->>> p.write_block(0, FLP.Packets([FLP.SerialPrintClockCommand(), 
-                                  FLP.SerialPrintCommand('test\n'), 
-                                  FLP.SerialPrintClockCommand(), 
-                                  FLP.Dwell(s=1), 
+>>> p.write_block(0, FLP.Packets([FLP.SerialPrintClockCommand(),
+                                  FLP.SerialPrintCommand('test\n'),
+                                  FLP.SerialPrintClockCommand(),
+                                  FLP.Dwell(s=1),
                                   FLP.SerialPrintClockCommand()]))
 >>> p.start_printing(0, 1)
 ```
@@ -40,6 +40,8 @@ Note that printing `'test\n'` took about 1 ms whereas the `FLP.Dwell(ms=1000)` c
 
 Along with `FLP.SerialPrintClockCommand` there is `FLP.NopCommand`, which also holds a string; it does nothing but can be used to put markers or other metadata in FLP files.
 
+# LEGAL DISCLAIMER
+SEE NOTICE FILE.
 
 # Copyright
 Copyright 2016 Formlabs
