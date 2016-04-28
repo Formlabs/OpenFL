@@ -2,17 +2,26 @@
 from __future__ import division
 import sys
 import os
-sys.path.append(os.path.abspath('../OpenFL'))
+import inspect
+from os.path import dirname
+
+# Add parent directory to sys.path so we find OpenFL.
+sys.path.append(dirname(dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
+
+from context import FLP, Printer
 
 GERBER_EXTENSIONS = ('.gbl', '.gbs', '.gtl')
 
 import numpy as np
 
-def image_to_laser_moves(image, M, mmps=294.0, powerThreshold_mW=0.0, doFilter=False,
-                         max_seg_length_mm=5.0):
+def image_to_laser_moves_xy_mm_dt_s_mW(image, M, 
+                                       mmps=294.0, 
+                                       powerThreshold_mW=0.0, 
+                                       doFilter=False,
+                                       max_seg_length_mm=5.0):
     """
     Given an image and a transform, rasterize the image.
-    Return an FLX.FLXIdealLaserSegments object.
+    Returns an array of shape nx4 where each row is dt_s, x_mm, y_mm, mW.
     """
     image = np.asarray(image)
     M = np.asarray(M)
@@ -40,56 +49,55 @@ def image_to_laser_moves(image, M, mmps=294.0, powerThreshold_mW=0.0, doFilter=F
     xy = M.dot(ij1)
     xy = xy[:-1] / xy[-1:] # Perspective divide.
     # Not sure how to deal with energy density... for now let's ignore it.
-    result = []
-    result.append((0.0, 0.0, 0.0, 0.0))
+    result_mm_s_mW = []
+    result_mm_s_mW.append((0.0, 0.0, 0.0, 0.0))
     for i, (xy_mm, mW) in enumerate(zip(xy.T, image)):
-        prev_xy_mm = result[-1][1:3]
+        prev_xy_mm = result_mm_s_mW[-1][:2]
         direction = xy_mm - prev_xy_mm
         dist_mm = np.linalg.norm(direction)
         dt_s = dist_mm / mmps
-        result.append((dt_s, xy_mm[0], xy_mm[1], mW))
+        result_mm_s_mW.append((xy_mm[0], xy_mm[1], dt_s, mW))
 
     xy_mm = np.array((0.0, 0.0))
-    dist_mm = np.linalg.norm(xy_mm - result[-1][1:3])
+    dist_mm = np.linalg.norm(xy_mm - result_mm_s_mW[-1][:2])
     dt_s = dist_mm / mmps
-    result.append((dt_s, xy_mm[0], xy_mm[1], 0.0))
-    # Filter result to exclude straight lines.
+    result_mm_s_mW.append((xy_mm[0], xy_mm[1], dt_s, 0.0))
+    # Filter result_mm_s_mW to exclude straight lines.
     normalized = lambda x: np.asarray(x) / np.linalg.norm(x)
-    if len(result) <= 3 or not doFilter:
-        return np.array(result), xy, image
+    if len(result_mm_s_mW) <= 3 or not doFilter:
+        return np.array(result_mm_s_mW)
 
-    filtered = [result[0]]
+    filtered_mm_s_mW = [result_mm_s_mW[0]]
     sum_dt_s = 0.0
-    mW = result[0][3]
-    for seg_i in range(1, len(result)):
+    mW = result_mm_s_mW[0][3]
+    for seg_i in range(1, len(result_mm_s_mW)):
         # Include seg_i if it is a different power than the last seg included.
-        sum_dt_s += result[seg_i-1][0]
+        sum_dt_s += result_mm_s_mW[seg_i-1][2]
         # See if this segment has a different power.
-        seg_mm = np.linalg.norm(np.array(filtered[-1][1:3]) - result[seg_i-1][1:3])
-        if abs(result[seg_i][3] - mW) > powerThreshold_mW or seg_mm > max_seg_length_mm:
+        seg_mm = np.linalg.norm(np.array(filtered_mm_s_mW[-1][:2]) - result_mm_s_mW[seg_i-1][:2])
+        if abs(result_mm_s_mW[seg_i][3] - mW) > powerThreshold_mW or seg_mm > max_seg_length_mm:
             # This segment has a different power, so add the first
             # point of this segment, with the last power and the sum time.
             # That constitutes the previous-power line segment.
             # Now start summing up the new segment.
             if mW == 0.0:
-                dist_mm = np.linalg.norm(np.array(filtered[-1][1:3]) - result[seg_i-1][1:3])
+                dist_mm = np.linalg.norm(np.array(filtered_mm_s_mW[-1][:2]) - result_mm_s_mW[seg_i-1][:2])
                 sum_dt_s = dist_mm / mmps
-            filtered.append((sum_dt_s,) + tuple(result[seg_i-1][1:3]) + (mW,))
+            filtered_mm_s_mW.append(tuple(result_mm_s_mW[seg_i-1][:2]) + (sum_dt_s, mW))
             sum_dt_s = 0.0
-            mW = result[seg_i][3]
+            mW = result_mm_s_mW[seg_i][3]
 
-    filtered.append((sum_dt_s,) + tuple(result[-1][1:3]) + (mW,))
-    return np.array(filtered), xy, image
+    filtered_mm_s_mW.append(tuple(result_mm_s_mW[-1][:2]) + (sum_dt_s, mW))
+    return np.array(filtered_mm_s_mW)
 
 
-def samplesToFLP(dtxypower, xymmToDac=None):
+def __samplesToFLP(dtxypower, xymmToDac=None):
     clock_Hz = 60e3
     xytickspmm = float(0xffff) / 125
     lastPower = None
     xyticks = []
     import numpy as np
     dtxypower = np.asarray(dtxypower)
-    from OpenFL import FLP
     result = FLP.Packets()
     result.append(FLP.TimeRemaining(int(sum(dtxypower[:,0]))))
     import numpy as np
@@ -103,9 +111,15 @@ def samplesToFLP(dtxypower, xymmToDac=None):
             xy_ticks = xyToTicks.dot((x_mm, y_mm, 1))
             x_ticks, y_ticks = xy_ticks[:2] / xy_ticks[-1]
             return x_ticks, y_ticks
-
+    xydtmW = Printer.sample_line_segment_mm_s(start_xy_mm=dtxypower[0,1:3],
+                                              xys_mm=dtxypower[1:,1:3],
+                                              dts_s=dtxypower[1:,0],
+                                              mW=dtxypower[1:,3])
+    # Use the starting row, then interpolate elsewhere.
+    dtxypower = np.vstack([dtxypower[:1],
+                           np.hstack([xydtmW[:,2], xydtmW[:,:2], xydtmW[:,3]])
+                          ])
     for dt_s, x_mm, y_mm, power in dtxypower:
-        #power = mWToNumber(power)
         if power != lastPower:
             if xyticks:
                 result.append(FLP.XYMove(xyticks))
@@ -128,15 +142,18 @@ def samplesToFLP(dtxypower, xymmToDac=None):
     return result
 
 
-def png_to_flp(pngfilename, flpfilename, pixel_mm=0.1, mmps=295.0, mW=31.0,
-               invert=True,
-               mWToNumber=None, 
-               xymmToDac=None,
+def png_to_flp(pngfilename, flpfilename, printer, pixel_mm=0.1, mmps=295.0, mW=31.0,
+               invert=False,
                tile=(1,1)):
     from scipy.ndimage import imread
-    image = imread(pngfilename)
-    if image.ndim == 3:
-        image = image.mean(axis=-1)
+    if isinstance(pngfilename, basestring):
+        image = imread(pngfilename)
+        if image.ndim == 3:
+            image = image.mean(axis=-1)
+    else:
+        image = np.array(pngfilename)
+        if image.ndim != 2:
+            raise TypeError('pngfilename must be a 2D image or a filename.')
     image /= image.max()
     image[image < 0.5] = 0.0 # Throw out noise/edges, etc.
     image[image >= 0.5] = 1.0
@@ -145,21 +162,14 @@ def png_to_flp(pngfilename, flpfilename, pixel_mm=0.1, mmps=295.0, mW=31.0,
     image *= mW
     M = np.diag((pixel_mm,pixel_mm,1))+[[0,0,0.1],[0,0,0.05],[0,0,0]]
     image = np.tile(image, tile)
-    result, xy, imflat = image_to_laser_moves(image, M, mmps=mmps, doFilter=True)
-    if mWToNumber is None:
-        def mWToNumber(mW): 
-            num = np.polyval((423,19082), mW)
-            num[mW < 1] = 0
-            assert np.all(num <= 0xffff)
-            return num
-    result[:,3] = mWToNumber(result[:,3])
+    result_xy_mm_dt_s_mW = image_to_laser_moves_xy_mm_dt_s_mW(image, M, mmps=mmps, doFilter=True)
     # Center:
-    lo = result[:,1:3].min(axis=0)
-    hi = result[:,1:3].max(axis=0)
-    result[:,1:3] -= [(lo + hi)/2]
-    data = samplesToFLP(result, xymmToDac=xymmToDac) 
+    lo = result_xy_mm_dt_s_mW[:,:2].min(axis=0)
+    hi = result_xy_mm_dt_s_mW[:,:2].max(axis=0)
+    result_xy_mm_dt_s_mW[:,:2] -= [(lo + hi)/2]
+    data = printer.samples_to_FLP(xy_mm_dts_s_mW=result_xy_mm_dt_s_mW)
     data.tofile(flpfilename)
-    return data, result, xy, imflat, image
+    return data, result_xy_mm_dt_s_mW, image
 
 
 def plotResults(result):
@@ -227,13 +237,11 @@ def image_to_flp(imagefilename, flpfilename, pixel_mm=0.1, **kwargs):
         fh = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
         imagefilename, pixel_mm = convertToTmpPNG(imagefilename, fh.name, pixel_mm=pixel_mm)
     assert flpfilename.endswith('.flp')
-    return png_to_flp(pngfilename, flpfilename, pixel_mm=pixel_mm, **kwargs)
+    return png_to_flp(imagefilename, flpfilename, pixel_mm=pixel_mm, **kwargs)
 
 
 if __name__ == '__main__':
     inImageFilename, outFlpFilename = sys.argv[1], sys.argv[2]
-    from OpenFL import Printer
     p = Printer.Printer()  
     image_to_flp(inImageFilename, outFlpFilename,
-                 mWToNumber=p.mW_to_ticks, 
-                 xymmToDac=p.mm_to_galvo)
+                 printer=p)

@@ -523,6 +523,7 @@ class Printer(object):
             >>> Printer.mm_to_galvo([[0, 1, 2], [0, 0, 0]]) # -> A three-segment line along the x axis.
             The returned array is 2xN, where N is the number of source points
         """
+        xshape = np.shape(x)
         if self._grid_table is None:
             grid = np.array(self.read_grid_table())
             assert grid.shape == (5, 5, 2)
@@ -543,7 +544,109 @@ class Printer(object):
         x_ = [self._grid_table[0](a, b) for a, b in zip(x, y)]
         y_ = [self._grid_table[1](a, b) for a, b in zip(x, y)]
 
-        return np.hstack([x_, y_]).T
+        result = np.hstack([x_, y_]).T
+        if xshape == (): # If it's called with scalars, return a flat result.
+            return result.flatten()
+        return result
+    
+    @staticmethod
+    def sample_line_segment_mm_s(start_xy_mm, end_xy_mm, dt_s, mW=None, max_mm=5.0):
+        """ Given a line segment in mm space, map it to galvo space.
+            To make the line straight in mm space, samples may be added to 
+            more-closely approximate a straight line.
+            Returns: An array of shape nx3 (if mW is None) or nx4 (if mW is not None) 
+                        of points time deltas in mm and seconds,
+                        excluding start_xy_mm and including end_xy_mm,
+                        possibly including samples along the way.
+        """
+        import FLP
+        from numpy.linalg import norm
+        dist_mm = norm(np.asarray(end_xy_mm) - start_xy_mm)
+        if dist_mm <= max_mm:
+            if mW is None:
+                return np.array((tuple(end_xy_mm) + (dt_s,),)) # Just the end sample.
+            else:
+                return np.array((tuple(end_xy_mm) + (dt_s, mW),)) # Just the end sample.
+        samples_s = np.linspace(0, dt_s, np.ceil(dist_mm / max_mm) + 1)
+        timeRange_s = (0, dt_s)
+        if mW is None:
+            return np.transpose([np.interp(samples_s[1:], timeRange_s, (start_xy_mm[0], end_xy_mm[0])),
+                                 np.interp(samples_s[1:], timeRange_s, (start_xy_mm[1], end_xy_mm[1])),
+                                 np.diff(samples_s)])
+        else:
+            return np.transpose([np.interp(samples_s[1:], timeRange_s, (start_xy_mm[0], end_xy_mm[0])),
+                                 np.interp(samples_s[1:], timeRange_s, (start_xy_mm[1], end_xy_mm[1])),
+                                 np.diff(samples_s),
+                                 mW * np.ones_like(samples_s[1:])])
+            
+
+    @staticmethod
+    def sample_line_segments_mm_s(start_xy_mm, xys_mm, dts_s, mWs, max_mm=5.0):
+        """ Given a sequence of x, y, dt, mW, return a new sequence
+            with samples added as needed for interpolation.
+        """
+        if len(xys_mm) != len(dts_s) or len(xys_mm) != len(mWs):
+            raise TypeError('Samples must be the same length.')
+        if len(xys_mm) == 0:
+            return np.zeros((0, 3))
+        result = [Printer.sample_line_segment_mm_s(start_xy_mm, 
+                                                   xys_mm[0],
+                                                   dts_s[0],
+                                                   mW=mWs[0],
+                                                   max_mm=max_mm)]
+        for start_mm, end_mm, dt_s, mW in zip(xys_mm[:-1],
+                                              xys_mm[1:],
+                                              dts_s[1:],
+                                              mWs[1:]):
+            newChunk = Printer.sample_line_segment_mm_s(start_mm,
+                                                        end_mm,
+                                                        dt_s,
+                                                        mW=mW,
+                                                        max_mm=max_mm)
+            result.append(newChunk)
+        return np.vstack(result)
+        
+
+    def samples_to_FLP(self, xy_mm_dts_s_mW, max_mm=5.0):
+        import FLP
+        clock_Hz = FLP.XYMoveClockRate.moverate_Hz()
+        xyticks = []
+        import numpy as np
+        xy_mm_dts_s_mW = np.asarray(xy_mm_dts_s_mW)
+        result = FLP.Packets()
+        xydtmW = self.sample_line_segments_mm_s(start_xy_mm=xy_mm_dts_s_mW[0,:2],
+                                                xys_mm=xy_mm_dts_s_mW[1:,:2],
+                                                dts_s=xy_mm_dts_s_mW[1:,2],
+                                                mWs=xy_mm_dts_s_mW[1:,3],
+                                                max_mm=5.0)
+        # Use the starting row, then interpolate elsewhere.
+        xydtmW = np.vstack([xy_mm_dts_s_mW[:1],
+                            np.hstack([xydtmW[:,:2], xydtmW[:,2:3], xydtmW[:,3:4]])
+                           ])
+        last_mW = None
+        lastxy_ticks = self.mm_to_galvo(xydtmW[0][0], xydtmW[0][1])
+        for x_mm, y_mm, dt_s, mW in xydtmW:
+            if mW != last_mW:
+                if xyticks:
+                    result.append(FLP.XYMove(xyticks))
+                    xyticks = []
+                result.append(FLP.LaserPowerLevel(self.mW_to_ticks(mW)))
+                last_mW = mW
+            xy_ticks = self.mm_to_galvo(x_mm, y_mm)
+            dt_ticks = dt_s * clock_Hz
+            # Deal with potential that the move takes too long to fit in one step:
+            for i in range(int(dt_ticks // 0xffff)):
+                alpha = (i+1) * 0xffff / dt_ticks 
+                x = np.interp(alpha, [0.0, 1.0], [lastxy_ticks[0], xy_ticks[0]])
+                y = np.interp(alpha, [0.0, 1.0], [lastxy_ticks[1], xy_ticks[1]])
+                xyticks.append((x, y, 0xffff))
+            dt_ticks %= 0xffff # Now we just have to do the last little bit.
+            xyticks.append(tuple(xy_ticks) + (dt_ticks,))
+            lastxy_ticks = xy_ticks
+        if xyticks:
+            result.append(FLP.XYMove(xyticks))
+        return result
+
 
     @staticmethod
     def mm_to_galvo_approx(x, y=None):

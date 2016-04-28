@@ -39,6 +39,12 @@ class Packet(object):
     def __init__(self):
         self.data = self.DEFAULT_DATA
 
+    def __eq__(self, other):
+        return (self.CMD == other.CMD and
+                self.COUNT == other.COUNT and 
+                self.dtype == other.dtype and 
+                self.data == other.data)
+
     @property
     def DEFAULT_DATA(self):
         if self.COUNT == 0:
@@ -204,10 +210,11 @@ class XYMoveClockRate(LaserCommand):
     """
     CMD = 0x02
     dtype = 'I'
-    DEFAULT_DATA = 60000
+    DEFAULT_DATA = 60000 # This is the only supported clock rate.
 
-    @property
-    def moverate_Hz(self): return self.data
+    @staticmethod
+    def moverate_Hz(): 
+        return XYMoveClockRate.DEFAULT_DATA
 
     def _reprContents(self):
         return '{} Hz'.format(self.moverate_Hz)
