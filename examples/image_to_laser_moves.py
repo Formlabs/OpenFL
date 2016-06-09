@@ -241,7 +241,20 @@ def image_to_flp(imagefilename, flpfilename, pixel_mm=0.1, **kwargs):
 
 
 if __name__ == '__main__':
-    inImageFilename, outFlpFilename = sys.argv[1], sys.argv[2]
-    p = Printer.Printer()  
+    import argparse
+    parser = argparse.ArgumentParser(description='Convert an image to a single-layer flp file.')
+    parser.add_argument('inImageFilename', nargs=1)
+    parser.add_argument('outFLPFilename', nargs=1)
+    args = parser.parse_args()
+
+    inImageFilename = args.inImageFilename
+    outFlpFilename = args.outFLPFilename
+    try:
+        p = Printer.Printer()  
+    except RuntimeError:
+        sys.stderr.write('Failed to connect to a printer. \n' + 
+                         'A printer is required to have a laser calibration.\n')
+        sys.exit(1)
+
     image_to_flp(inImageFilename, outFlpFilename,
                  printer=p)
