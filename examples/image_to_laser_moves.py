@@ -203,8 +203,18 @@ def gerberToPNG(filename, png, pixel_mm=0.1):
     Convert to png.
     Return pixel size in mm.
     """
-    import gerber
-    from gerber.render import GerberCairoContext
+    try:
+        import gerber
+    except Exception as e:
+        if 'hull' in str(e).lower():
+            raise Exception('Module pyhull not found. Try "pip install pyhull"?')
+        raise Exception('The gerber module can be found at https://github.com/curtacircuitos/pcb-tools.')
+    try:
+        from gerber.render import GerberCairoContext
+    except Exception as e:
+        if 'cairo' in str(e).lower():
+            raise Exception('Failed to load gerber.render. Do you have the py2cairo package, which provides the cairo module?')
+        raise e
 
     # Read gerber and Excellon files
     data = gerber.read(filename)
