@@ -519,6 +519,9 @@ class Packets(list):
     """
     def __init__(self, *a, **k):
         super(Packets, self).__init__(*a, **k)
+        for packet in self:
+            if not isinstance(packet, Packet):
+                raise TypeError('Packets must all be FLP Packets. Got {}'.format(type(packet)))
 
     def __getslice__(self, *a, **k):
         return Packets(super(Packets, self).__getslice__(*a, **k))

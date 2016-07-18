@@ -154,13 +154,13 @@ def png_to_flp(pngfilename, flpfilename, printer, pixel_mm=0.1, mmps=295.0, mW=3
         image = np.array(pngfilename)
         if image.ndim != 2:
             raise TypeError('pngfilename must be a 2D image or a filename.')
-    image /= image.max()
+    image = image.astype(float) / image.max()
     image[image < 0.5] = 0.0 # Throw out noise/edges, etc.
     image[image >= 0.5] = 1.0
     if invert:
         image = 1.0 - image
     image *= mW
-    M = np.diag((pixel_mm,pixel_mm,1))+[[0,0,0.1],[0,0,0.05],[0,0,0]]
+    M = np.diag((-pixel_mm,pixel_mm,1))+[[0,0,0.1],[0,0,0.05],[0,0,0]]
     image = np.tile(image, tile)
     result_xy_mm_dt_s_mW = image_to_laser_moves_xy_mm_dt_s_mW(image, M, mmps=mmps, doFilter=True)
     # Center:
@@ -203,8 +203,18 @@ def gerberToPNG(filename, png, pixel_mm=0.1):
     Convert to png.
     Return pixel size in mm.
     """
-    import gerber
-    from gerber.render import GerberCairoContext
+    try:
+        import gerber
+    except Exception as e:
+        if 'hull' in str(e).lower():
+            raise Exception('Module pyhull not found. Try "pip install pyhull"?')
+        raise Exception('The gerber module can be found at https://github.com/curtacircuitos/pcb-tools.')
+    try:
+        from gerber.render import GerberCairoContext
+    except Exception as e:
+        if 'cairo' in str(e).lower():
+            raise Exception('Failed to load gerber.render. Do you have the py2cairo package, which provides the cairo module?')
+        raise e
 
     # Read gerber and Excellon files
     data = gerber.read(filename)
@@ -241,7 +251,22 @@ def image_to_flp(imagefilename, flpfilename, pixel_mm=0.1, **kwargs):
 
 
 if __name__ == '__main__':
-    inImageFilename, outFlpFilename = sys.argv[1], sys.argv[2]
-    p = Printer.Printer()  
-    image_to_flp(inImageFilename, outFlpFilename,
-                 printer=p)
+    import argparse
+    parser = argparse.ArgumentParser(description='Convert an image to a single-layer flp file.')
+    parser.add_argument('inImageFilename', nargs=1)
+    parser.add_argument('outFLPFilename', nargs=1)
+    parser.add_argument('--pixel_mm', default=0.1, type=float)
+    args = parser.parse_args()
+
+    inImageFilename = args.inImageFilename
+    outFlpFilename = args.outFLPFilename
+    try:
+        p = Printer.Printer()  
+    except RuntimeError:
+        sys.stderr.write('Failed to connect to a printer. \n' + 
+                         'A printer is required to have a laser calibration.\n')
+        sys.exit(1)
+
+    image_to_flp(inImageFilename[0], outFlpFilename[0],
+                 printer=p,
+                 pixel_mm=args.pixel_mm)
