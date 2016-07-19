@@ -228,11 +228,15 @@ class MotorMoveCommand(MotorCommand):
     def __init__(self, usteps=0):
         if not int(usteps) == usteps:
             raise TypeError('usteps must be an integer, otherwise you are asking for round')
-        self.data = int(usteps)
+        self.usteps = int(usteps)
 
     @property
     def usteps(self):
         return self.data
+
+    @usteps.setter
+    def usteps(self, usteps):
+        self.data = int(usteps)
 
     def _reprContents(self):
         return '{} usteps'.format(self.usteps)
@@ -241,10 +245,19 @@ class MotorFeedRate(MotorCommand):
     """Update the {} feed rate in microsteps per second."""
     dtype = 'I'
     def __init__(self, usteps_per_s=0):
-        self.data = int(usteps_per_s)
+        self.usteps_per_s = usteps_per_s
+
     @property
     def feedrate(self):
         return self.data
+
+    @property
+    def usteps_per_s(self):
+        return self.data
+
+    @usteps_per_s.setter
+    def usteps_per_s(self, usteps_per_s):
+        self.data = int(usteps_per_s)
 
     def _reprContents(self):
         return '{} usteps/s'.format(self.feedrate)
@@ -260,11 +273,15 @@ class MotorCurrent(MotorCommand):
             raise TypeError('Must be constructed with either a current or moving=True or moving=False.')
         if current is None:
             current = MotorCurrent.moving_current if moving else MotorCurrent.idle_current
-        self.data = int(current)
+        self.current = current
 
     @property
     def current(self):
         return self.data
+
+    @current.setter
+    def current(self, current):
+        self.data = int(current)
 
 class ZMove(MotorMoveCommand):
     __doc__ = MotorMoveCommand.__doc__.format('z')
