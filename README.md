@@ -19,6 +19,49 @@ pip install -r requirements.txt
 
 Then, have a look through the `examples` subfolder.
 
+# Modifying prints
+A print can be read from the printer. Each layer is a "block" on the printer, which can be read as a `FLP.Packets` object, which is a Python `list`:
+```
+>>> from OpenFL import Printer, FLP
+>>> p=Printer.Printer()
+>>> layer = p.read_block(0)
+>>> assert isinstance(layer, FLP.Packets)
+>>> assert isinstance(layer, list)
+>>> layer[:11]
+[<XYMoveClockRate(<function moverate_Hz at 0x106eac5f0> Hz) at 0x106f41610>,
+ <LayerDone() at 0x106f415d0>,
+ <ZCurrent(80) at 0x106f41650>,
+ <TiltCurrent(80) at 0x106f416d0>,
+ <ZFeedRate(4000 usteps/s) at 0x106f41710>,
+ <ZMove(2000 usteps) at 0x106f41790>,
+ <WaitForMovesToComplete() at 0x106f417d0>,
+ <WaitForMovesToComplete() at 0x106f41750>,
+ <ZFeedRate(4000 usteps/s) at 0x106f41810>,
+ <ZMove(-1960 usteps) at 0x106f41850>,
+ <WaitForMovesToComplete() at 0x106f41890>]
+>>> print layer[9]
+0x03 ZMove -1960
+>>> layer[9].usteps
+-1960
+>>> layer[9].usteps = 42
+>>> layer[9]
+<ZMove(42 usteps) at 0x106f41850>
+```
+alternately, you could do:
+```
+>>> layer[9] = FLP.ZMove(usteps=42) # Overwrite packet
+```
+or
+```
+del layer[9] # Delete packet from list
+layer.insert(9, FLP.ZMove(usteps=42)) # Insert packet
+```
+because FLP.Packets is a Python list (i.e., it inherits list) so you can append, insert, concatenate, etc.
+
+Finally, the block can be pushed back to the printer:
+```
+p.write_block(0, layer)
+```
 
 # Serial Output Commands
 OpenFL provides commands for bidirectional communication with the printer while it is printing.
