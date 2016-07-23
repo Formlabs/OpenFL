@@ -436,6 +436,11 @@ class Printer(object):
         """
         self._command(Command.CMD_UNPAUSE_PRINTING, expect_success=True)
 
+    def format_sd_card(self):
+        """ Formats the printer's internal SD card
+        """
+        self._command(Command.CMD_FORMAT_SDCARD, expect_success=True)
+
     def move_z(self, steps, feedrate, current=80):
         """ Moves the Z stepper a certain number of steps
                 steps is a signed number of microsteps to move
