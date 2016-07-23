@@ -202,7 +202,7 @@ class LaserPowerLevel(LaserCommand):
     def power(self):
         return self.data
     @power.setter
-    def power(self, power_ticks)
+    def power(self, power_ticks):
         if int(power_ticks) != power_ticks:
             raise ValueError("Precision loss. Cast argument to int if that's what you want.")
         self.data = int(power_ticks)
