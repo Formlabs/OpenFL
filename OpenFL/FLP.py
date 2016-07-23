@@ -196,11 +196,16 @@ class LaserPowerLevel(LaserCommand):
     dtype = 'H'
 
     def __init__(self, power_ticks = 0):
-        self.data = int(power_ticks)
+        self.power_ticks = power_ticks
 
     @property
     def power(self):
         return self.data
+    @power.setter
+    def power(self, power_ticks)
+        if int(power_ticks) != power_ticks:
+            raise ValueError("Precision loss. Cast argument to int if that's what you want.")
+        self.data = int(power_ticks)
 
 
 class XYMoveClockRate(LaserCommand):
@@ -226,9 +231,7 @@ class MotorMoveCommand(MotorCommand):
     """
     dtype = 'i'
     def __init__(self, usteps=0):
-        if not int(usteps) == usteps:
-            raise TypeError('usteps must be an integer, otherwise you are asking for round')
-        self.usteps = int(usteps)
+        self.usteps = usteps
 
     @property
     def usteps(self):
@@ -236,6 +239,8 @@ class MotorMoveCommand(MotorCommand):
 
     @usteps.setter
     def usteps(self, usteps):
+        if not int(usteps) == usteps:
+            raise ValueError("usteps must be an integer, otherwise you are asking for precision loss. Cast argument to int if that's what you want. But remember, precision loss in number of steps adds up!")
         self.data = int(usteps)
 
     def _reprContents(self):
@@ -257,6 +262,8 @@ class MotorFeedRate(MotorCommand):
 
     @usteps_per_s.setter
     def usteps_per_s(self, usteps_per_s):
+        if not int(usteps_per_s) == usteps_per_s:
+            raise ValueError("usteps_per_s must be an integer, otherwise you are asking for precision loss. Cast argument to int if that's what you want.")
         self.data = int(usteps_per_s)
 
     def _reprContents(self):
@@ -281,6 +288,8 @@ class MotorCurrent(MotorCommand):
 
     @current.setter
     def current(self, current):
+        if not int(current) == current:
+            raise ValueError("current must be an integer, otherwise you are asking for precision loss. Cast argument to int if that's what you want.")
         self.data = int(current)
 
 class ZMove(MotorMoveCommand):
@@ -533,6 +542,7 @@ def parsePacket(fh):
 class Packets(list):
     """
     A list of packets. This represents a file or collection of files.
+    Packets inherits list so you can delete and insert entries, just like in a list.
     """
     def __init__(self, *a, **k):
         super(Packets, self).__init__(*a, **k)

@@ -256,7 +256,9 @@ class Printer(object):
                       expect_success=True)
 
     def read_block(self, block):
-        """ Reads a block by number
+        """ Reads a block by number.
+            The result is an FLP.Packets object, which is a Python list,
+            meaning you can delete and insert entries, just like in a list.
         """
         data = self._command(Command.CMD_READ_BLOCK,
                 bytearray(struct.pack('<I', block)),
