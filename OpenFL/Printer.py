@@ -27,7 +27,6 @@ import time
 
 import usb.core
 import numpy as np
-import scipy.interpolate
 
 from OpenFL import FLP
 
@@ -534,6 +533,7 @@ class Printer(object):
             pts_mm = np.linspace(-64, 64, 5) # Grid positions in mm
 
             # Interpolators for X and Y values (mm to galvo ticks)
+            import scipy.interpolate
             fit_x = scipy.interpolate.interp2d(pts_mm, pts_mm, grid[:,:,0])
             fit_y = scipy.interpolate.interp2d(pts_mm, pts_mm, grid[:,:,1])
             self._grid_table = (fit_x, fit_y)
