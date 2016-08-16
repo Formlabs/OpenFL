@@ -400,6 +400,11 @@ class Printer(object):
 
     def start_printing(self, block, end=None):
         """ Begins printing from the given block, returning immediately
+        The range (block, end) is half-open, so:
+        * block == 0, end == 1 is just layer 0
+        * block == 0, end == 2 is layer 0 and 1
+        * block == 10, end == 20 is layer 10, 11, ..., 19
+        If end is None, then it just prints one layer.
 
             The printer may receive the following packets while printing:
                 STATUS_LAYER_DONE
