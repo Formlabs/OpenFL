@@ -19,7 +19,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import division
+from __future__ import division, print_function
 import struct
 import inspect
 import sys
@@ -689,3 +689,21 @@ def fromfile(f):
 def fromstring(string):
     """Load all the packets in a string buffer."""
     return Packets.fromstring(string)
+
+
+
+def print_not_a_script_message_and_exit():
+    import inspect, os, sys
+    filename = os.path.split(inspect.getouterframes(inspect.currentframe())[1][1])[1]
+    print(("=" * 25 + " ERROR " + "=" * 25 + "\n" +
+           "{filename} is a Python module not a script.\n" +
+           "Rather than running {filename} from the command line as 'python {filename}',\n" +
+           "it needs to be imported from a Python script or\n" +
+           "from an interactive Python session.\n\n" + 
+           "See README.md and the examples directory for OpenFL usage.").format(filename=filename),
+          file=sys.stderr)
+    exit(1)
+
+
+if __name__ == '__main__':
+    print_not_a_script_message_and_exit()

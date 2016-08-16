@@ -896,3 +896,7 @@ class State(Enum):
     MACHINE_ERROR = 9
     MACHINE_HARD_ERROR = 10
     MACHINE_STATE_NONE = 11
+
+
+if __name__ == '__main__':
+    FLP.print_not_a_script_message_and_exit()
