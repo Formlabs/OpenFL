@@ -266,6 +266,7 @@ if __name__ == '__main__':
         sys.stderr.write('Failed to connect to a printer. \n' + 
                          'A printer is required to have a laser calibration.\n')
         sys.exit(1)
+    p.initialize()
 
     image_to_flp(inImageFilename[0], outFlpFilename[0],
                  printer=p,
