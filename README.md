@@ -3,6 +3,26 @@ This repository contains an API for interfacing with the Form 1/1+ 3D printer.
 
 Contact: openfl@formlabs.com
 
+# Summary
+OpenFL provides a number of distinct features for doing interesting non-standard things with a Form 1/1+:
+
+1. A special version of PreForm that allows setting of custom material settings: 
+   1. custom laser powers
+   2. custom laser speeds
+   3. custom motor speeds
+2. Python bindings for talking with the printer, including reading and writing machine-code ("FLP" files) to/from the printer.
+3. A Python API for manipulating FLP files.
+4. A special firmware which adds:
+   1. a wait-on-pin command to allow a print to pause for outside input
+   2. a write-serial command and a write-serial time command to allow logging and to allow the printer to notify other electronics of events
+
+Notes:
+* The OpenFL version of PreForm, that allows exposure to be customized, does not require custom firmware or the Python tools.
+* The custom PreForm is not required to use the Python tools.
+* The custom firmware is required to use the Python printer API.
+* The custom firmware is compatible with other versions of PreForm.
+
+
 # Quickstart
 ## PreForm
 In order to use all of the firmware features and to set custom material files for Form 1/1+, you need a special version of PreForm, available here:
