@@ -4,7 +4,7 @@ FLP.py
 
 A library to read, modify, and write Formlabs FLP files for Form 1 and Form 1+.
 
-Copyright 2016 Formlabs
+Copyright 2016-2017 Formlabs
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -92,6 +92,6 @@ p.write_block(0, layer)
 SEE [NOTICE FILE](NOTICE.md).
 
 # Copyright
-Copyright 2016 Formlabs
+Copyright 2016-2017 Formlabs
 
 Released under the [Apache License](https://github.com/formlabs/openfl/blob/master/COPYING).
