@@ -39,8 +39,12 @@ pip install -r requirements.txt
 
 Then, have a look through the `examples` subfolder.
 
+Advanced FLP commands are documented in [ADVANCED.md](https://github.com/Formlabs/OpenFL/tree/master/ADVANCED.md)
+
 # Modifying prints
-A print can be read from the printer. Each layer is a "block" on the printer, which can be read as a `FLP.Packets` object, which is a Python `list`:
+A print can be read from the printer. Each layer is a "block" on the printer, which can be read as a `FLP.Packets` object, which is a Python `list`.
+
+Here's an example interaction with an uploaded print:
 ```
 >>> from OpenFL import Printer, FLP
 >>> p=Printer.Printer()
@@ -48,7 +52,7 @@ A print can be read from the printer. Each layer is a "block" on the printer, wh
 >>> layer = p.read_block_flp(block=0)
 >>> assert isinstance(layer, FLP.Packets)
 >>> assert isinstance(layer, list)
->>> layer[:11]
+>>> layer[:11] # This will be different depending on the print
 [<XYMoveClockRate(<function moverate_Hz at 0x106eac5f0> Hz) at 0x106f41610>,
  <LayerDone() at 0x106f415d0>,
  <ZCurrent(80) at 0x106f41650>,
@@ -83,52 +87,6 @@ Finally, the block can be pushed back to the printer:
 ```
 p.write_block(0, layer)
 ```
-
-# Serial Output Commands
-OpenFL provides commands for bidirectional communication with the printer while it is printing.
-
-> **Caution**: With any covers removed, a Formlabs printer is no longer a Class 1 laser device. See [NOTICE.md](NOTICE.md).
-
-The J22 header of the board, next to the USB plug, can be connected to an FTDI TTL-232R-3V3 six-pin cable. The end labeled "G" on the board is ground (black), not to be confused with the green wire that's at the other end of the plug. This serial port is at 115200 baud, so can be listened to with, e.g.,
-
-<img src="Form_1+_pinout.png" width="500" alt="Serial and wait-on-pin headers">
-
-This serial port is at 115200 baud, so can be listened to with, e.g., 
-```
-$ python -m serial.tools.miniterm /dev/tty.usbserial-AL009TJ4 115200
-```
-The serial port will show a number of status messages as the machine boots, for example. Most interesting, though, are the two FLP commands which allow programmed output. One writes strings to the serial port; the other writes the current Form 1/1+ system clock time (in ms). For example:
-```
->>> from OpenFL import Printer, FLP
->>> p=Printer.Printer()
->>> p.write_block(0, FLP.Packets([FLP.SerialPrintClockCommand(),
-                                  FLP.SerialPrintCommand('test\n'),
-                                  FLP.SerialPrintClockCommand(),
-                                  FLP.Dwell(s=1),
-                                  FLP.SerialPrintClockCommand()]))
->>> p.start_printing(0, 1)
-```
-results in the following output on the serial line:
-```
-clock: 190845
-test
-clock: 190846
-clock: 191848
-```
-Note that printing `'test\n'` took about 1 ms whereas the `FLP.Dwell(ms=1000)` command took 1002 ms.
-
-Along with `FLP.SerialPrintClockCommand` there is `FLP.NopCommand`, which also holds a string; it does nothing but can be used to put markers or other metadata in FLP files.
-
-# Mid-print input
-## `FLP.WaitButtonPress`
-`FLP.WaitButtonPress` displays a message and pauses the print until the user presses the button.
-
-## `FLP.WaitOnPin`
-`FLP.WaitOnPin` allows the printer to synchronize with other electronics: When the printer gets to a `FLP.WaitOnPin` packet, it pauses until a pin is pulled to ground. With this and `FLP.SerialPrintCommand`, a Form 1/1+ can be synchronized with another computer. For example, `FLP.SerialPrintCommand` could tell a computer to execute motor moves with additional motors, then when they complete, the computer can signal the printer to continue.
-
-> **Caution**: With any covers removed, a Formlabs printer is no longer a Class 1 laser device. See [NOTICE.md](NOTICE.md).
-
-The physical pin is the center pin of J13, the three-pin header labeled CAL next to the serial CONSOLE header. Shorting that center pin of J13 to ground (e.g., the J13 pin toward the back of the printer, toward the CONSOLE header) triggers `FLP.WaitOnPin` to continue.
 
 # LEGAL DISCLAIMER
 SEE [NOTICE FILE](NOTICE.md).

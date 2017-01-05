@@ -225,7 +225,7 @@ class XYMoveClockRate(LaserCommand):
     DEFAULT_DATA = 60000 # This is the only supported clock rate.
 
     @staticmethod
-    def moverate_Hz(): 
+    def moverate_Hz():
         return XYMoveClockRate.DEFAULT_DATA
 
     def _reprContents(self):
@@ -364,7 +364,7 @@ class LaserCalibration(LaserCommand):
     CMD = 0x0b
     dtype = 'H'
     COUNT = 3
-    
+
     @property
     def laserCal(self):
         return self.data
