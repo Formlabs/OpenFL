@@ -254,7 +254,7 @@ class Printer(object):
                       bytearray(struct.pack('<II', block, end)),
                       expect_success=True)
 
-    def read_block(self, block):
+    def read_block_raw(self, block):
         """ Reads a block by number.
             The result is an FLP.Packets object, which is a Python list,
             meaning you can delete and insert entries, just like in a list.
@@ -280,7 +280,7 @@ class Printer(object):
         return data[8:-4]
 
     def read_block_flp(self, block):
-        return FLP.fromstring(self.read_block(block))
+        return FLP.fromstring(self.read_block_raw(block))
 
     @staticmethod
     def _fletcher32(data):
@@ -735,7 +735,7 @@ class DummyPrinter(Printer):
             if i in self._blocks:
                 del self._blocks[i]
 
-    def read_block(self, block):
+    def read_block_raw(self, block):
         return self._blocks[block]
 
     def block_size(self):
