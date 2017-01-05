@@ -265,6 +265,8 @@ class Printer(object):
 
         # If we got a response code, return it immediately
         if isinstance(data, Response):
+            if data == Response.ERROR_MALFORMED_REQUEST:
+                raise BadResponse("Got %s; is this block on the printer?" % data)
             return data
 
         # Extract block and count from the returned data
