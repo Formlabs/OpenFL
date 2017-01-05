@@ -23,6 +23,7 @@ from __future__ import division, print_function
 import struct
 import inspect
 import sys
+import collections
 
 class Packet(object):
     """
@@ -125,6 +126,8 @@ class SliceCommand(Packet):
     """Parent class for layer start and layer done."""
     pass
 
+LaserPoint = collections.namedtuple('LaserPoint', ['x', 'y', 'dt'])
+
 class XYMove(LaserCommand):
     """
     A sequence of laser moves.
@@ -150,7 +153,7 @@ class XYMove(LaserCommand):
 
     @property
     def points(self):
-        return self._points
+        return [LaserPoint(x, y, dt) for (x, y, dt) in self._points]
 
     @points.setter
     def points(self, points):
