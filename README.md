@@ -44,7 +44,8 @@ A print can be read from the printer. Each layer is a "block" on the printer, wh
 ```
 >>> from OpenFL import Printer, FLP
 >>> p=Printer.Printer()
->>> layer = p.read_block_flp(0)
+>>> assert 0 in p.list_blocks() # If this fails, then there are no layers on the printer
+>>> layer = p.read_block_flp(block=0)
 >>> assert isinstance(layer, FLP.Packets)
 >>> assert isinstance(layer, list)
 >>> layer[:11]
