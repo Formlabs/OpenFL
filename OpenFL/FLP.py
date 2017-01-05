@@ -189,7 +189,7 @@ class XYMove(LaserCommand):
 
     def __str__(self):
         result = super(XYMove, self).__str__()
-        return result + '\n'.join(str(p) for p in self.points)
+        return result + '\n  ' + '\n  '.join(str(p) for p in self.points)
 
     def _addPointFromFile(self, fileHandle):
         self.points.append(self.rowstruct.unpack(fileHandle.read(self.rowstruct.size)))
