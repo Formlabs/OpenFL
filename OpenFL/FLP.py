@@ -131,6 +131,10 @@ LaserPoint = collections.namedtuple('LaserPoint', ['x', 'y', 'dt'])
 class XYMove(LaserCommand):
     """
     A sequence of laser moves.
+    The "points" field of this class is a table. Each row has (x, y, dt).
+      * x, y is the next laser position in galvo ticks.
+      * the dt field is the time it takes to get there in ticks from the previous point
+        (where one tick is 1/60000 s).
     """
     __slots__ = '_points'
     CMD = 0x00
