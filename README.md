@@ -33,6 +33,8 @@ Use that version of PreForm to update the firmware. Next, you can load the custo
 
 <img src="LoadCustomMaterial.png" width="500" alt="In the OpenFL version of PreForm, you can select a custom Form 1/1+ material by clicking the &quot;Load Custom Material...&quot; button.">
 
+For more details, see [Material file detailed description](material_file_description.md).
+
 ## Python tools
 To install dependencies, run
 ```
@@ -41,7 +43,7 @@ pip install -r requirements.txt
 
 Then, have a look through the `examples` subfolder.
 
-Advanced FLP commands are documented in [ADVANCED.md](https://github.com/Formlabs/OpenFL/tree/master/ADVANCED.md)
+Advanced FLP commands are documented in [ADVANCED.md](ADVANCED.md)
 
 # Modifying prints
 A print can be read from the printer. Each layer is a "block" on the printer, which can be read as a `FLP.Packets` object, which is a Python `list`.
