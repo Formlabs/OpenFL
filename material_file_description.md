@@ -50,9 +50,6 @@ Next, depending on if it's an "early layer" (if the layer number is less than or
 
 Finally, we wait for a duration ranging from `squishwaitmin_s` to `squishwaitmax_s`, depending on the geometry, before drawing the next layer.
 
-## Motor Moves
-
-
 # Copyright
 Copyright 2016-2017 Formlabs
 
