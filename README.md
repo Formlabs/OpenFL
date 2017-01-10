@@ -29,7 +29,9 @@ In order to use all of the firmware features and to set custom material files fo
 * https://s3.amazonaws.com/FormlabsReleases/Release/2.3.3/PreForm_2.3.3_release_OpenFL_build_2.dmg
 * https://s3.amazonaws.com/FormlabsReleases/Release/2.3.3/PreForm_setup_2.3.3_release_OpenFL_build_2.exe
 
-Use that version of PreForm to update the firmware. Next, you can load the custom material file, [Form_1+_FLGPCL02_100.ini](Form_1+_FLGPCL02_100.ini) from the PreForm UI and print with it.
+Use that version of PreForm to update the firmware. Next, you can load the custom material file, [Form_1+_FLGPCL02_100.ini](Form_1+_FLGPCL02_100.ini) from the PreForm UI and print with it by selecting the "Load Custom Material..." button:
+
+<img src="LoadCustomMaterial.png" width="500" alt="In the OpenFL version of PreForm, you can select a custom Form 1/1+ material by clicking the &quot;Load Custom Material...&quot; button.">
 
 ## Python tools
 To install dependencies, run
