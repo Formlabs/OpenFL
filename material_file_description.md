@@ -26,7 +26,31 @@ Once the outline and fill geometry is created, PreForm applies the speeds and po
 * `modelxyfeedrate = 1550` (mm/s)
 * `modellaserpowermw = 62` (mW)
 
-then the energy density is 62&nbsp;mW /(0.09&nbsp;mm • 1550&nbsp;mm/s) = 0.4444&nbsp;mW&nbsp;s/mm<sup>2</sup> = 0.4444&nbsp;mJ/mm<sup>2</sup>.
+then the energy density is 62&nbsp;mW/(0.09&nbsp;mm • 1550&nbsp;mm/s) = 0.4444&nbsp;mW&nbsp;s/mm<sup>2</sup> = 0.4444&nbsp;mJ/mm<sup>2</sup>.
+
+<b>The laser should not be commanded to be brighter than 62&nbsp;mW (delivered to the tank bottom) for a Form 1+.</b> The laser gets less precise as it goes faster. While commanding it to drive at several meters per second should not cause damage, tracking will degrade. We recommend drawing perimeters at no faster than 800&nbsp;mm/s and fill at no faster than 1600&nbsp;mm/s.
+
+## Passes
+To adhere to the build platform, we do many passes for layer 0 and typically do two passes for the first several layers after that. This is controlled by:
+
+    [laserRoutine]
+    firstlayerpasses = 10  ; The number of laser passes to do for layer 0 to attach to the build platform.
+    otherlayerpasses = 1  ; The number of laser passes to do for most layers (typically 1).
+    earlylayerpasses = 2  ; The number of laser passes to do for early layers as defined by earlytimesexpose.
+    
+    [btwnLayerRoutine]
+    earlytimesexpose = 50  ; The number of layers that will be exposed earlylayerpasses times (excluding layer 0). That is, if earlytimesexpose is 3 and earlylayerpasses is 2, layer 0 will get firstlayerp
+
+With the above four settings, the first layer is drawn 10 times (`firstlayerpasses`). The after that, the next 49 layers (`earlylayerpasses` minus one for the first layer) are drawn with 2 passes (earlylayerpasses), and most layers are drawn with 1 pass (`otherlayerpasses`).
+
+## Peel cycle
+After the laser turns off, we wait `postlasercurewait` seconds. This is typically 1 second, but depends on the kenetics of your resin. It may need to be longer; it may be possible to be less.
+
+Next, depending on if it's an "early layer" (if the layer number is less than or equal to `earlytimespeel`), we use the "`p1`" motor moves; after `earlytimespeel` we use the "`p2`" moves. The peel cycle moves down at a `downvel` then up at an `upvel`, then finally up at an `upslowvel`, which forces the tilt motor into the hard stop.
+
+Finally, we wait for a duration ranging from `squishwaitmin_s` to `squishwaitmax_s`, depending on the geometry, before drawing the next layer.
+
+## Motor Moves
 
 
 # Copyright
