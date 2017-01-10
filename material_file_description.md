@@ -41,7 +41,17 @@ To adhere to the build platform, we do many passes for layer 0 and typically do 
     [btwnLayerRoutine]
     earlytimesexpose = 50  ; The number of layers that will be exposed earlylayerpasses times (excluding layer 0). That is, if earlytimesexpose is 3 and earlylayerpasses is 2, layer 0 will get firstlayerp
 
-That is, with the above four settings, layer 0 (the first layer) is drawn 10 times. The subsequent 49 layers are drawn with 2 passes, and most layers are drawn with 1 pass (`otherlayerpasses`)
+With the above four settings, the first layer is drawn 10 times (`firstlayerpasses`). The after that, the next 49 layers (`earlylayerpasses` minus one for the first layer) are drawn with 2 passes (earlylayerpasses), and most layers are drawn with 1 pass (`otherlayerpasses`).
+
+## Peel cycle
+After the laser turns off, we wait `postlasercurewait` seconds. This is typically 1 second, but depends on the kenetics of your resin. It may need to be longer; it may be possible to be less.
+
+Next, depending on if it's an "early layer" (if the layer number is less than or equal to `earlytimespeel`), we use the "`p1`" motor moves; after `earlytimespeel` we use the "`p2`" moves. The peel cycle moves down at a `downvel` then up at an `upvel`, then finally up at an `upslowvel`, which forces the tilt motor into the hard stop.
+
+Finally, we wait for a duration ranging from `squishwaitmin_s` to `squishwaitmax_s`, depending on the geometry, before drawing the next layer.
+
+## Motor Moves
+
 
 # Copyright
 Copyright 2016-2017 Formlabs
