@@ -307,9 +307,9 @@ class Printer(object):
     def write_block(self, block, data, skip_audit=False):
         """ Writes a block.
                 block is an integer
-                data is a bytearray, filename, or FLP.Packets object
+                data is a bytearray, filename, or FLP.Packets object, or a filename for a .flp.
         """
-        if isinstance(data, FLP.Packets):
+        if isinstance(data, (basestring, FLP.Packets)):
             assert skip_audit == False
             return self.write_block_flp(block, data)
         if not isinstance(data, bytearray):
@@ -331,6 +331,9 @@ class Printer(object):
                 block is an integer
                 flp is a FLP.Packets object
         """
+        if isinstance(data, basestring):
+            assert data.endswith('.flp') # If it's a filename, open it up and use it.
+            flp = FLP.fromfile(data) # 
         if not isinstance(flp, FLP.Packets):
             raise TypeError("flp must be a FLP.Packets instance; got a {}.".format(type(flp)))
         if self.AUDIT_LASER_POWER:
