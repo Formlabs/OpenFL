@@ -578,8 +578,8 @@ class Packets(list):
     @staticmethod
     def fromstring(string):
         """Load all the packets in a string buffer."""
-        from io import StringIO
-        return fromfile(StringIO(string))
+        from io import BytesIO
+        return fromfile(BytesIO(string))
 
     @staticmethod
     def fromfile(fileHandle):
