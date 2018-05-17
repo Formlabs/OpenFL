@@ -25,6 +25,14 @@ import inspect
 import sys
 import collections
 
+
+try: # Since python3 doesn't have basestring:
+    basestring
+except NameError:
+    basestring = str
+
+
+
 class Packet(object):
     """
     Parent class of all flp packets.
@@ -54,7 +62,7 @@ class Packet(object):
             return 0
         else:
             s = struct.Struct(self.dtype * self.COUNT)
-            return s.unpack('\0' * s.size)
+            return s.unpack(b'\0' * s.size)
 
     @classmethod
     def fromstring(cls, data):
@@ -71,7 +79,10 @@ class Packet(object):
             if len(self.data) == 0:
                 self.data = self.data[0]
         else:
-            if 's' in self.struct.format: # It's a string.
+            fmt = self.struct.format
+            if isinstance(fmt, bytes):
+                fmt = fmt.decode('utf-8')
+            if 's' in fmt:
                 assert len(data) == 1
                 assert len(data[0]) == self.struct.size
                 data = data[0]
@@ -379,7 +390,7 @@ class LayerStart(SliceCommand):
     def __init__(self, layernumber=None):
         if layernumber is None:
             s = struct.Struct(self.dtype * self.COUNT)
-            layernumber, = s.unpack('\xff' * s.size)
+            layernumber, = s.unpack(b'\xff' * s.size)
         self.data = layernumber
 
     @property
