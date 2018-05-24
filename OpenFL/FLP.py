@@ -214,11 +214,12 @@ class LaserPowerLevel(LaserCommand):
     dtype = 'H'
 
     def __init__(self, power_ticks = 0):
-        self.power_ticks = power_ticks
+        self.power = int(power_ticks)
 
     @property
     def power(self):
         return self.data
+
     @power.setter
     def power(self, power_ticks):
         if int(power_ticks) != power_ticks:

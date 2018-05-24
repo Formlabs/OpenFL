@@ -242,6 +242,11 @@ def convertToTmpPNG(filename, png, pixel_mm=0.1):
 def image_to_flp(imagefilename, flpfilename, pixel_mm=0.1, **kwargs):
     import sys
     isGerber = os.path.splitext(imagefilename.lower())[1] in GERBER_EXTENSIONS
+    try:
+        return png_to_flp(imagefilename, flpfilename, pixel_mm=pixel_mm, **kwargs)
+    except IOError as e:
+        if e.strerror == 'No such file or directory':
+            raise
     if not imagefilename.endswith('.png'):
         import tempfile
         fh = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
