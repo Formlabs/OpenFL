@@ -53,6 +53,7 @@ def insert_pause_before(layer,
 
 if __name__ == '__main__':
     import sys
+    assert len(sys.argv) == 3, "Usage: insert_material_swaps.py input.flp output.flp."
     layer = FLP.fromfile(sys.argv[1])
     layer = insert_pause_before(layer)
     layer.tofile(sys.argv[2])

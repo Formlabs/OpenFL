@@ -431,6 +431,8 @@ class WaitButtonPress(Packet):
     COUNT = 24 * 3
     dtype = 's'
     def __init__(self, string=''):
+        if not isinstance(string, basestring):
+            raise TypeError('string must be a string')
         self.string = string
     @property
     def data(self):
@@ -462,6 +464,8 @@ class AbstractStringCommand(Packet):
     COUNT = 64
 
     def __init__(self, string=''):
+        if not isinstance(string, basestring):
+            raise TypeError('string must be a string')
         if len(string) > self.COUNT:
             raise TypeError('String too long {} > {}'.format(len(string), self.COUNT))
         self.data = string + '\0' * (self.COUNT - len(string))
