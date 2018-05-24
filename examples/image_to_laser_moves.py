@@ -256,12 +256,13 @@ if __name__ == '__main__':
     parser.add_argument('inImageFilename', nargs=1)
     parser.add_argument('outFLPFilename', nargs=1)
     parser.add_argument('--pixel_mm', default=0.1, type=float)
+    parser.add_argument('--dummy-printer', action='store_true', help="Don't ask a printer for a cal table, just use a dummy one.")
     args = parser.parse_args()
 
     inImageFilename = args.inImageFilename
     outFlpFilename = args.outFLPFilename
     try:
-        p = Printer.Printer()  
+        p = Printer.Printer() if not args.dummy_printer else Printer.DummyPrinter()
     except RuntimeError:
         sys.stderr.write('Failed to connect to a printer. \n' + 
                          'A printer is required to have a laser calibration.\n')
