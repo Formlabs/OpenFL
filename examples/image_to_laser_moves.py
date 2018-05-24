@@ -242,6 +242,11 @@ def convertToTmpPNG(filename, png, pixel_mm=0.1):
 def image_to_flp(imagefilename, flpfilename, pixel_mm=0.1, **kwargs):
     import sys
     isGerber = os.path.splitext(imagefilename.lower())[1] in GERBER_EXTENSIONS
+    try:
+        return png_to_flp(imagefilename, flpfilename, pixel_mm=pixel_mm, **kwargs)
+    except IOError as e:
+        if e.strerror == 'No such file or directory':
+            raise
     if not imagefilename.endswith('.png'):
         import tempfile
         fh = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
@@ -256,12 +261,13 @@ if __name__ == '__main__':
     parser.add_argument('inImageFilename', nargs=1)
     parser.add_argument('outFLPFilename', nargs=1)
     parser.add_argument('--pixel_mm', default=0.1, type=float)
+    parser.add_argument('--dummy-printer', action='store_true', help="Don't ask a printer for a cal table, just use a dummy one.")
     args = parser.parse_args()
 
     inImageFilename = args.inImageFilename
     outFlpFilename = args.outFLPFilename
     try:
-        p = Printer.Printer()  
+        p = Printer.Printer() if not args.dummy_printer else Printer.DummyPrinter()
     except RuntimeError:
         sys.stderr.write('Failed to connect to a printer. \n' + 
                          'A printer is required to have a laser calibration.\n')
