@@ -240,7 +240,7 @@ class XYMoveClockRate(LaserCommand):
         return XYMoveClockRate.DEFAULT_DATA
 
     def _reprContents(self):
-        return '{} Hz'.format(self.moverate_Hz)
+        return '{} Hz'.format(self.moverate_Hz())
 
 class MotorMoveCommand(MotorCommand):
     """
