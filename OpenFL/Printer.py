@@ -57,7 +57,7 @@ class Printer(object):
     AUDIT_LASER_POWER = True
     LASER_POWER_MAX_MW = 64
 
-    def __init__(self, connect=True):
+    def __init__(self, connect=True, timeout_ms=10000):
         if connect:
             self.dev = usb.core.find(idVendor=self.VID, idProduct=self.PID)
             if self.dev is None:
@@ -68,6 +68,7 @@ class Printer(object):
             except usb.USBError as e:
                 e.strerror += ". Be sure PreForm is closed."
                 raise
+        self.timeout_ms = timeout_ms
         self.incoming = []
         self.packet = bytearray()
 
@@ -78,12 +79,12 @@ class Printer(object):
     def _read(self, bufsize=1024):
         """ Reads raw data from the printer's usual endpoint
         """
-        return bytearray(self.dev.read(self.TX_EP, bufsize))
+        return bytearray(self.dev.read(self.TX_EP, bufsize, timeout=self.timeout_ms))
 
     def _write(self, data):
         """ Writes raw data to the printer's usual endpoint
         """
-        return self.dev.write(self.RX_EP, data)
+        return self.dev.write(self.RX_EP, data, timeout=self.timeout_ms)
 
     @classmethod
     def _decode(cls, received):
