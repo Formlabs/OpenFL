@@ -304,6 +304,18 @@ class Printer(object):
         if mW > self.LASER_POWER_MAX_MW:
             raise LaserPowerError('Requested power is dangerously high.')
 
+    def get_machine_information(self):
+        data = self._command(Command.CMD_MACHINE_INFORMATION)
+        parts = struct.unpack('<I32sI7s7s7s7s', data)
+        result = dict((field, x) for field, x in zip(('modelNumber',
+                                                      'serialNumber',
+                                                      'firmwareVersion',
+                                                      'gitVersion',
+                                                      'libmapleVersion',
+                                                      'mapleSdFatVersion',
+                                                      'tinyprintfVersion'), parts))
+        return result
+        
     def write_block(self, block, data, skip_audit=False):
         """ Writes a block.
                 block is an integer
