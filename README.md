@@ -57,7 +57,7 @@ Here's an example interaction with an uploaded print:
 >>> assert isinstance(layer, FLP.Packets)
 >>> assert isinstance(layer, list)
 >>> layer[:11] # This will be different depending on the print
-[<XYMoveClockRate(<function moverate_Hz at 0x106eac5f0> Hz) at 0x106f41610>,
+[<XYMoveClockRate(60000 Hz) at 0x106f41610>,
  <LayerDone() at 0x106f415d0>,
  <ZCurrent(80) at 0x106f41650>,
  <TiltCurrent(80) at 0x106f416d0>,
