@@ -1,4 +1,7 @@
-<---! This is a comment -->
+<!-- Foo
+
+bar
+   baz -->
 
 # Community Resin Profiles
 
