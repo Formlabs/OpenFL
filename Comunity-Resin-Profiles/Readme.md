@@ -1,3 +1,5 @@
+<--! This is a comment -->
+
 # Community Resin Profiles
 
 ![image](https://user-images.githubusercontent.com/11083514/53135228-5cbdd780-3572-11e9-9f29-256c100c706c.png)
