@@ -7,4 +7,4 @@
 # Community Resin Profiles
 
 ![PYNXGR01](![form1-pynexgrey](https://user-images.githubusercontent.com/11083514/53144658-0a41e280-3595-11e9-8fe2-ac54976eff70.jpg)
-**BRAND:** PEOPOLY | **RESIN:** Nex | **COLOR:** Grey | **LAYER:** 100u | **BY:** @X3msnake | **FILE:** [Form_1+_PYNXGR01_100.ini](Form_1+_PYNXGR01_100.ini)
+**BRAND/RESIN/COLOR:** [PEOPOLY Nex Grey](http://bit.ly/PeopolyNexGrey) | **LAYER:** 100u | **BY:** @X3msnake | **FILE:** [Form_1+_PYNXGR01_100.ini](Form_1+_PYNXGR01_100.ini)
