@@ -1,7 +1,8 @@
-<!-- Foo
-
-bar
-   baz -->
+<!-- 
+- Use the following template: **BRAND:** | **RESIN:** | **COLOR:** | **LAYER:** | **BY:** @ | **FILE:** [Form_1+.ini]()
+- Basic calibration should be made with Make rook: https://www.thingiverse.com/thing:533652/files
+- Use a closeup macro lens and take macro shots of top and side and a general photo of the rook, use this gimp template to collate the images
+-->
 
 # Community Resin Profiles
 
