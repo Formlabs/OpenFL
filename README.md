@@ -1,10 +1,12 @@
 # NOTE: OpenFL scripts do not work in Python 3.8.2, Try an older version. 2.7.15 definitely works
 -lavachemist April 28, 2020
 
+# Community Scripts
+
+The community scripts will be located in the [Dev branch](https://github.com/opensourcemanufacturing/OpenFL/tree/Dev) until further testing is completed.
+
 # OpenFL
 This repository contains an API for interfacing with the Form 1/1+ 3D printer.
-
-Contact: openfl@formlabs.com
 
 # Summary
 OpenFL provides a number of distinct features for doing interesting non-standard things with a Form 1/1+:
