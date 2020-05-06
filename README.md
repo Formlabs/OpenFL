@@ -1,4 +1,4 @@
-# OpenFL scripts do not work in Python 3.8.2, Use 2.7 instead.
+# OpenFL scripts do not work in Python 3.8, Use 2.7 instead.
 
 # Community Scripts
 
