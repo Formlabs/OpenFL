@@ -1,5 +1,4 @@
-# NOTE: OpenFL scripts do not work in Python 3.8.2, Try an older version. 2.7.15 definitely works
--lavachemist April 28, 2020
+# OpenFL scripts do not work in Python 3.8.2, Use 2.7 instead.
 
 # Community Scripts
 
