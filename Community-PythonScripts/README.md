@@ -23,7 +23,7 @@
 1) [Insertz_100u.py](https://github.com/opensourcemanufacturing/OpenFL/blob/master/Community-PythonScripts/Scripts/Insertz_100u.py)
 
 * This script will allow you to use Z lift for peeling and allow you to disable the tilt peeling. You need to run this script at a 0.1mm layer height with these ["btwnLayerRoutine"](https://github.com/opensourcemanufacturing/OpenFL/blob/Dev/Community-PythonScripts/VerticalLiftProfile.ini) settings. If you use a different layer height or the wrong "btwnLayerRoutine" the script will not work properly and may crash your printer.
-* I recommend deleting all blocks that are currently on your printer before slicing with PreForm. Preform does not delete block numbers when slicing, it overwrites them. So if your current print job is 240 layers tall, and your tallest previous print was 1000 layers tall, the script will run for all 1000 blocks (layers) on your printer. [Click here for a script that will delete all blocks on the printer](https://openfl.dev)
+* I recommend deleting all blocks that are currently on your printer before slicing with PreForm. Preform does not delete block numbers when slicing, it overwrites them. So if your current print job is 240 layers tall, and your tallest previous print was 1000 layers tall, the script will run for all 1000 blocks (layers) on your printer.
 
 * If the script fails due to some USB issue, make sure Preform is not running. You might want to consider using a faster SD card (the SanDisk card in my machine is very slow and crashes occasionally).
 
@@ -32,6 +32,10 @@
 2) [ZOffset.py](https://github.com/opensourcemanufacturing/OpenFL/blob/master/Community-PythonScripts/Scripts/ZOffset.py)
 * Tune your Z offset for the current print without removing your SD card.
 
-3) [FLP_PrintAll_01_042720.py](https://github.com/opensourcemanufacturing/OpenFL/blob/master/Community-PythonScripts/Scripts/FLP_PrintAll_01_042720.py)
+3) [DeleteBlocks.py](https://github.com/opensourcemanufacturing/OpenFL/blob/master/Community-PythonScripts/Scripts/DeleteBlocks.py)
+
+* This script will delete all FLP blocks currently on your Form1/1+. This is useful to run before sending a new print job to the printer, particularly if you about to run a script that affects every block on the printer - like the Insertz script.
+
+4) [FLP_PrintAll_01_042720.py](https://github.com/opensourcemanufacturing/OpenFL/blob/master/Community-PythonScripts/Scripts/FLP_PrintAll_01_042720.py)
 
 * READ COMMENTS IN SCRIPT BEFORE USING: This is a troubleshooting script that Writes FLP blocks to a text file. This is helpful for understanding FLP files. Read the comments in the script and edit it before running. Look at [FLPBlockDescriptions.md](https://github.com/opensourcemanufacturing/OpenFL/blob/master/Community-PythonScripts/FLPBlockDescriptions.md) for an overview of what is in an FLP block.
