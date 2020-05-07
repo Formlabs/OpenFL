@@ -23,9 +23,7 @@
 1) [Insertz_100u.py](https://github.com/opensourcemanufacturing/OpenFL/blob/master/Community-PythonScripts/Scripts/Insertz_100u.py)
 
 * This script will allow you to use Z lift for peeling and allow you to disable the tilt peeling. You need to run this script at a 0.1mm layer height with these ["btwnLayerRoutine"](https://github.com/opensourcemanufacturing/OpenFL/blob/Dev/Community-PythonScripts/VerticalLiftProfile.ini) settings. If you use a different layer height or the wrong "btwnLayerRoutine" the script will not work properly and may crash your printer.
-* I recommend deleting all blocks that are currently on your printer before slicing with PreForm. Preform does not delete block numbers when slicing, it overwrites them. So if your current print job is 240 layers tall, and your tallest previous print was 1000 layers tall, the script will run for all 1000 blocks (layers) on your printer.
-
-* If the script fails due to some USB issue, make sure Preform is not running. You might want to consider using a faster SD card (the SanDisk card in my machine is very slow and crashes occasionally).
+* I recommend deleting all blocks that are currently on your printer before slicing with PreForm. Preform does not delete block numbers when slicing, it overwrites them. So if your current print job is 240 layers tall, and your tallest previous print was 1000 layers tall, the script will run for all 1000 blocks (layers) on your printer. There is a DeleteBlocks.py script that will delete all blocks on the printer (see description below).
 
 * The print restart option in Preform (File > Printers) works if you want to print the same thing more than once.
 
