@@ -21,4 +21,4 @@
 
 3) [FLP_PrintAll_01_042720.py](https://github.com/opensourcemanufacturing/OpenFL/blob/master/Community-PythonScripts/Scripts/FLP_PrintAll_01_042720.py)
 
-* READ COMMENTS IN SCRIPT BEFORE USING: This is a troubleshooting script that Writes FLP blocks to a text file. This is helpful for understanding FLP files. Read the comments in the script and edit it before running. Look at [FLPBlockDescriptions.md](https://github.com/opensourcemanufacturing/OpenFL/blob/Dev/Community-PythonScripts/FLPBlockDescriptions.md) for an overview of what is in an FLP block.
+* READ COMMENTS IN SCRIPT BEFORE USING: This is a troubleshooting script that Writes FLP blocks to a text file. This is helpful for understanding FLP files. Read the comments in the script and edit it before running. Look at [FLPBlockDescriptions.md](https://github.com/opensourcemanufacturing/OpenFL/blob/master/Community-PythonScripts/FLPBlockDescriptions.md) for an overview of what is in an FLP block.
