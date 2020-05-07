@@ -1,9 +1,5 @@
 # OpenFL scripts do not work in Python 3.8, Use 2.7 instead.
 
-# Community Scripts
-
-The community scripts will be located in the [Dev branch](https://github.com/opensourcemanufacturing/OpenFL/tree/Dev) until further testing is completed.
-
 # OpenFL
 This repository contains an API for interfacing with the Form 1/1+ 3D printer.
 
