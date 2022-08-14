@@ -26,8 +26,8 @@ Notes:
 # Quickstart
 ## PreForm
 In order to use all of the firmware features and to set custom material files for Form 1/1+, you need a special version of PreForm, available here:
-* https://s3.amazonaws.com/FormlabsReleases/Release/2.3.3/PreForm_2.3.3_release_OpenFL_build_2.dmg
-* https://s3.amazonaws.com/FormlabsReleases/Release/2.3.3/PreForm_setup_2.3.3_release_OpenFL_build_2.exe
+* [PreForm_2.3.3_OpenFL_MacOS.dmg.zip](downloads/PreForm_2.3.3_OpenFL_MacOS.dmg.zip)
+* [PreForm_setup_2.3.3_OpenFL_Windows.exe.zip](downloads/PreForm_setup_2.3.3_OpenFL_Windows.exe.zip)
 
 Use that version of PreForm to update the firmware. Next, you can load the custom material file, [Form_1+_FLGPCL02_100.ini](Form_1+_FLGPCL02_100.ini) from the PreForm UI and print with it by selecting the "Load Custom Material..." button:
 
